@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Librarian Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, Librarian!</h1>
+    <a href="{% url 'core:catalog' %}">Manage Catalog</a>
+    <form action="{% url 'core:logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+</body>
+</html>

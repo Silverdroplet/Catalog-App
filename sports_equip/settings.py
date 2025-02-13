@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "core",
 ]
 
 MIDDLEWARE = [
@@ -124,7 +125,13 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+DATABASES = {
+    "default": dj_database_url.config(
+        default="sqlite:///db.sqlite3", conn_max_age=600, ssl_require=False
+    )
+}
+
+#DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 #Tells django where to look for the static files for deployment
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

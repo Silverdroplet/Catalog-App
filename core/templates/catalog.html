@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Catalog</title>
+</head>
+<body>
+    <h1>Available Equipment</h1>
+    <ul>
+        {% for item in items %}
+            <li>{{ item.name }} - {% if item.is_available %} Available {% else %} Loaned Out {% endif %}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'core:home' %}">Back to Home</a>
+</body>
+</html>
