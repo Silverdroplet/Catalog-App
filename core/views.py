@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 from django.views.generic import TemplateView, ListView
 from .models import Equipment
@@ -31,12 +32,15 @@ class CustomLoginView(LoginView):
 
 @login_required
 def dashboard_redirect(request):
-    if request.user.is_staff:
-        return redirect("core:librarian")
-    return redirect("core:patron")
+    user = request.user
 
-class PatronDashboardView(LoginRequiredMixin, TemplateView):
+    if user.groups.filter(name="Librarians").exists():
+        return redirect("core:librarian")
+    else:
+        return redirect("core:patron")
+
+class PatronDashboardView(TemplateView):
     template_name = "patron.html"
 
-class LibrarianDashboardView(LoginRequiredMixin, TemplateView):
+class LibrarianDashboardView(TemplateView):
     template_name = "librarian.html"
