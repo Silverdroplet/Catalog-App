@@ -27,9 +27,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-uxwk@p825#_ad-wayfo=@#g3roef^uo80z+2ce6c7h0$_m*vh&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'sports-gear-lending-at-uva.herokuapp.com',
+    'localhost',
+    '127.0.0.1'
+]
+
 
 
 # Application definition
@@ -82,9 +87,12 @@ SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
     'key': ''
 }
 
+LOGIN_REDIRECT_URL = "/dashboard/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -94,6 +102,7 @@ MIDDLEWARE = [
 
     'allauth.account.middleware.AccountMiddleware',
 ]
+
 
 ROOT_URLCONF = 'sports_equip.urls'
 
@@ -161,7 +170,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -178,7 +187,8 @@ DATABASES = {
 
 #Tells django where to look for the static files for deployment
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-#Serves static files with WhiteNoise
-MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Static files settings for WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 SITE_ID = 1
