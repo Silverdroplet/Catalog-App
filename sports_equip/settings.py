@@ -31,6 +31,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     'sports-gear-lending-at-uva.herokuapp.com',
+    'sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com', 
     'localhost',
     '127.0.0.1'
 ]
