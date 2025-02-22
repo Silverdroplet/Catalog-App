@@ -5,6 +5,9 @@
 </head>
 <body>
     <h1>Welcome, {{ name }} ({{ username }})! </h1>
+    <p>
+        Your email: {{ email }}
+    </p>
     <a href="{% url 'core:catalog' %}">Browse Catalog</a>
     <form action="{% url 'core:logout' %}" method="post">
         {% csrf_token %}
