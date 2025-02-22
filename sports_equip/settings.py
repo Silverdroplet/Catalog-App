@@ -79,6 +79,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
+        'REDIRECT_URI': 'https://sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com/accounts/google/login/callback/'
     }
 }
 
