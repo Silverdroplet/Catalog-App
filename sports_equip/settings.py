@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-uxwk@p825#_ad-wayfo=@#g3roef^uo80z+2ce6c7h0$_m*vh&
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'sports-equipment-app.herokuapp.com/'
+    'sports-equipment-app.herokuapp.com/',
     'sports-equipment-app-c7caa8020653.herokuapp.com/',
     'sports-gear-lending-at-uva.herokuapp.com',
     'sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com', 
