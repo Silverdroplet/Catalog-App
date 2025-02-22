@@ -76,6 +76,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'profile',
             'email',
         ],
+        'FIELDS': ['email', 'given_name', 'family_name'],
         'AUTH_PARAMS': {
             'access_type': 'online',
         },

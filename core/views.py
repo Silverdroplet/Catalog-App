@@ -46,7 +46,8 @@ class PatronDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context["name"] = user.first_name if user.first_name else "Guest"
-        context["username"] = user.username
+        context["username"] = (user.email).split('@')[0]
+        context["email"] = user.email if user.email else "No email provided"
         return context
 
 class LibrarianDashboardView(TemplateView):
