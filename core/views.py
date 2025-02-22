@@ -39,8 +39,15 @@ def dashboard_redirect(request):
     else:
         return redirect("core:patron")
 
-class PatronDashboardView(TemplateView):
+class PatronDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "patron.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["name"] = user.first_name if user.first_name else "Guest"
+        context["username"] = user.username
+        return context
 
 class LibrarianDashboardView(TemplateView):
     template_name = "librarian.html"
