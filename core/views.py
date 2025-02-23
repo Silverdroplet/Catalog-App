@@ -26,7 +26,7 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        if user.is_staff:
+        if user.groups.filter(name="Librarians").exists():
             return reverse_lazy("core:librarian")
         return reverse_lazy("core:patron")
 

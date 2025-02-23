@@ -196,4 +196,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Static files settings for WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
+
 SITE_ID = 1
