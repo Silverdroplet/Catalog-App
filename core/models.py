@@ -19,3 +19,11 @@ class Loan(models.Model):
 
     def __str__(self):
         return f"{self.user.username} borrowed {self.equipment.name}"
+    
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile_picture = models.ImageField(upload_to='profile_pics/')
+    joined_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.username
