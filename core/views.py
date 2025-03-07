@@ -2,9 +2,9 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView, ListView
-from .models import Equipment
+from .models import Equipment, Profile
 from django.urls import reverse_lazy
 
 class HomeView(TemplateView):
@@ -45,9 +45,16 @@ class PatronDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
+        profile, created = Profile.objects.get_or_create(user=user)
+        context["profile"] = profile
+
+        #debugging log
+        #print(f"Profile found: {profile}, Created new: {created}")
+        
         context["name"] = user.first_name if user.first_name else "Guest"
         context["username"] = (user.email).split('@')[0]
-        context["email"] = user.email if user.email else "No email provided"
+        context["email"] = user.email if user.email else "No email provided" 
         return context
 
 class LibrarianDashboardView(TemplateView):

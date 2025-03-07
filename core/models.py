@@ -22,7 +22,7 @@ class Loan(models.Model):
     
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_picture = models.ImageField(upload_to='profile_pics/')
+    profile_picture = models.URLField(blank=True, null=True)  # URLField
     joined_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

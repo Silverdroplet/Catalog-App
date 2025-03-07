@@ -4,10 +4,19 @@
     <title>Patron Dashboard</title>
 </head>
 <body>
-    <h1>Welcome, {{ name }} ({{ username }})! </h1>
+    <h1>Welcome, {{ profile.user.get_full_name }}! </h1>
     <p>
-        Your email: {{ email }}
+        Your email: {{ profile.user.email }}
     </p>
+
+    <p>Joined on: {{ profile.joined_date}}</p>
+
+    {% if profile.profile_picture %}
+        <img src="{{ profile.profile_picture }}" alt="Profile Picture" width="150">
+    {% else %}
+        <p>No profile picture uploaded.</p>
+    {% endif %}
+
     <a href="{% url 'core:catalog' %}">Browse Catalog</a>
     <form action="{% url 'core:logout' %}" method="post">
         {% csrf_token %}

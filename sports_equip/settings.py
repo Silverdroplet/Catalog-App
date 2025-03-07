@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-uxwk@p825#_ad-wayfo=@#g3roef^uo80z+2ce6c7h0$_m*vh&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'sports-equipment-app.herokuapp.com/',

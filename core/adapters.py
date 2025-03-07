@@ -21,5 +21,10 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             #ensure that the profile exists
             profile, created = Profile.objects.get_or_create(user = user)
             profile.profile_picture = data.get('picture', '') #google profile picture URL
+
+            profile_picture_url = data.get('picture', '')  # Google profile picture URL
+            print(f"Google Profile Picture URL: {profile_picture_url}")  # Log the URL
+
+
             profile.save()
         return user
