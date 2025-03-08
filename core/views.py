@@ -1,6 +1,6 @@
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 from django.views.generic import TemplateView, ListView
@@ -42,6 +42,9 @@ def dashboard_redirect(request):
 class PatronDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "patron.html"
 
+    def test_func(self):
+        return self.request.user.groups.filter(name="Patrons").exists()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -50,5 +53,9 @@ class PatronDashboardView(LoginRequiredMixin, TemplateView):
         context["email"] = user.email if user.email else "No email provided"
         return context
 
-class LibrarianDashboardView(TemplateView):
+#class LibrarianDashboardView(TemplateView):
+class LibrarianDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "librarian.html"
+
+    def test_func(self):
+        return self.request.user.groups.filter(name="Librarians").exists()
