@@ -29,10 +29,14 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         # Assign new users to "Patrons" group by default
 
+        group, created = Group.objects.get_or_create(name="Patrons")
+        user.groups.add(group)
+
+        if user.groups.filter(name="Librarians").exists():
+            # Optionally, you can assign specific privileges for Librarians if needed
+            pass
+
         user.save()
 
-
-        #group, created = Group.objects.get_or_create(name="Patrons")
-        #user.groups.add(group)
 
         return user

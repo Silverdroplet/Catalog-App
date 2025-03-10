@@ -33,12 +33,13 @@
   </style>
 </head>
 <body>
+  {% load socialaccount %}
   <h1>Welcome to Sports Gear Lending @ UVA</h1>
   
   <!-- 1) Orange button: View Catalog -->
   <a href="{% url 'core:catalog' %}">View Catalog</a>
 
   <!-- 2) Orange button: Login (manual link) -->
-  <a href="{% url 'core:login' %}">Login</a>
+  <a href="{% provider_login_url 'google' %}">Login</a>
 </body>
 </html>
