@@ -2,20 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Google-Only Login</title>
 </head>
 <body>
     {% load socialaccount %}
+    
     <h2>Login</h2>
-        <a href="{% provider_login_url 'google' %}" class="btn btn-primary">Login with Google</a>
-    <h2>Login</h2>
-    {% if form.errors %}
-        <p style="color: red;">Invalid username or password</p>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}  
-        <button type="submit">Login</button>
-    </form>
+    <!-- Button to trigger Google OAuth -->
+    <a href="{% provider_login_url 'google' %}" class="btn btn-primary">
+      Login with Google
+    </a>
 </body>
 </html>

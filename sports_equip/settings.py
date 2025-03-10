@@ -198,4 +198,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
+ACCOUNT_ADAPTER = 'core.adapters.CustomAccountAdapter'
+
 SITE_ID = 1
