@@ -39,6 +39,7 @@ class Profile(models.Model):
         null=True
     )
     joined_date = models.DateTimeField(auto_now_add=True)
+    is_librarian = models.BooleanField(default=False) 
 
     def __str__(self):
         return self.user.username

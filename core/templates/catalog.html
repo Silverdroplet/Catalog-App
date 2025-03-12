@@ -6,6 +6,11 @@
 <body>
     <h1>Equipment Catalog</h1>
 
+    <!-- Show "Add New Equipment" only to librarians -->
+    {% if user.is_authenticated and user.profile.is_librarian %}
+        <p><a href="{% url 'core:add_equipment' %}">Add New Equipment</a></p>
+    {% endif %}
+
     <ul>
         {% for item in items %}
             <li style="margin-bottom: 20px;">
@@ -25,6 +30,11 @@
                 {% else %}
                     Status: <span style="color: red;">Loaned Out</span>
                 {% endif %}
+
+                <!-- Show "Add Image" only to librarians -->
+                {% if user.is_authenticated and user.profile.is_librarian %}
+                    <p><a href="{% url 'core:add_item_image' item.id %}">Add Image</a></p>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
@@ -32,3 +42,4 @@
     <p><a href="{% url 'core:home' %}">Back to Home</a></p>
 </body>
 </html>
+

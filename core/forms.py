@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Profile
+from .models import Profile, Equipment, EquipmentImage
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
@@ -11,3 +11,13 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['profile_picture']
+
+class EquipmentForm(forms.ModelForm):
+    class Meta:
+        model = Equipment
+        fields = ['name', 'identifier', 'description', 'is_available', 'status', 'location']
+
+class ItemImageForm(forms.ModelForm):
+    class Meta:
+        model = EquipmentImage
+        fields = ['image', 'caption']
