@@ -3,45 +3,77 @@
 {% block title %}Equipment Catalog{% endblock %}
 
 {% block content %}
-  <h1 class="mb-4">Equipment Catalog</h1>
+<h1 class="mb-4">Equipment Catalog</h1>
 
-  <!-- Show "Add New Equipment" only to librarians -->
-  {% if user.is_authenticated and user.profile.is_librarian %}
-    <p>
-      <a class="btn btn-success mb-3" href="{% url 'core:add_equipment' %}">Add New Equipment</a>
-    </p>
-  {% endif %}
+{% if user.is_authenticated and user.profile.is_librarian %}
+  <a href="{% url 'core:add_equipment' %}" class="btn btn-success mb-3">
+    Add New Equipment
+  </a>
+{% endif %}
 
-  <ul class="list-unstyled">
-    {% for item in items %}
-      <li class="mb-5 border-bottom pb-3">
-        <h4>{{ item.name }}</h4>
-        <div class="mb-2">
-          {% for image_obj in item.images.all %}
-            <img src="{{ image_obj.image.url }}" alt="{{ item.name }}" width="150" class="img-thumbnail me-2">
-            {% if image_obj.caption %}
-              <p>{{ image_obj.caption }}</p>
-            {% endif %}
-          {% empty %}
-            <em>No images available</em>
-          {% endfor %}
-        </div>
-        <p>
-          {% if item.is_available %}
-            Status: <span class="text-success">Available</span>
-          {% else %}
-            Status: <span class="text-danger">Loaned Out</span>
+<ul class="list-unstyled">
+  {% for item in items %}
+    <li class="mb-5 border-bottom pb-3">
+      <h4>{{ item.name }}</h4>
+      
+      <!-- Images -->
+      <div class="mb-2">
+        {% for image_obj in item.images.all %}
+          <img 
+            src="{{ image_obj.image.url }}" 
+            alt="{{ item.name }}" 
+            width="150" 
+            class="img-thumbnail me-2 mb-2"
+          >
+          {% if image_obj.caption %}
+            <p>{{ image_obj.caption }}</p>
           {% endif %}
-        </p>
-        <!-- Show "Add Image" only to librarians -->
-        {% if user.is_authenticated and user.profile.is_librarian %}
-          <p>
-            <a class="btn btn-secondary" href="{% url 'core:add_item_image' item.id %}">Add Image</a>
-          </p>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
+        {% empty %}
+          <em>No images available</em>
+        {% endfor %}
+      </div>
 
-  <a class="btn btn-link" href="{% url 'core:home' %}">Back to Home</a>
+      <!-- Equipment Details -->
+      <p><strong>Identifier:</strong> {{ item.identifier }}</p>
+      <p><strong>Description:</strong> {{ item.description }}</p>
+      <p><strong>Location:</strong> {{ item.location }}</p>
+
+      <!-- Status with Emojis -->
+      <p>
+        <strong>Status:</strong>
+        {% if item.status == "checked-in" %}
+          <span class="text-success">✅ Checked In</span>
+        {% elif item.status == "in-circulation" %}
+          <span class="text-warning">🔄 In Circulation</span>
+        {% elif item.status == "being-repaired" %}
+          <span class="text-danger">🔧 Being Repaired</span>
+        {% else %}
+          {{ item.status }}
+        {% endif %}
+      </p>
+
+      <!-- Availability with Emojis -->
+      <p>
+        <strong>Availability:</strong>
+        {% if item.is_available %}
+          <span class="text-success">✅ Available</span>
+        {% else %}
+          <span class="text-danger">❌ Loaned Out</span>
+        {% endif %}
+      </p>
+
+      <!-- Librarian Actions -->
+      {% if user.is_authenticated and user.profile.is_librarian %}
+        <a href="{% url 'core:edit_equipment' item.id %}" class="btn btn-info me-2">
+          Edit
+        </a>
+        <a href="{% url 'core:delete_equipment' item.id %}" class="btn btn-danger">
+          Delete
+        </a>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'core:home' %}" class="btn btn-link">Back to Home</a>
 {% endblock %}

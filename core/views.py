@@ -5,7 +5,7 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView, ListView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
-
+from django.contrib import messages
 from .models import Equipment, Profile
 from .forms import ProfileForm, EquipmentForm, ItemImageForm
 
@@ -83,10 +83,47 @@ def add_equipment(request):
     return render(request, 'add_equipment.html', {'form': form})
 
 @login_required
+def edit_equipment(request, equipment_id):
+    # Ensure the user is a librarian.
+    if not request.user.profile.is_librarian:
+        return HttpResponseForbidden("You do not have permission to edit equipment.")
+    
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+    
+    if request.method == 'POST':
+        form = EquipmentForm(request.POST, request.FILES, instance=equipment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Equipment updated successfully.")
+            return redirect('core:catalog')
+    else:
+        form = EquipmentForm(instance=equipment)
+    
+    return render(request, 'edit_equipment.html', {'form': form, 'equipment': equipment})
+
+@login_required
+def delete_equipment(request, equipment_id):
+    # Ensure the user is a librarian.
+    if not request.user.profile.is_librarian:
+        return HttpResponseForbidden("You do not have permission to delete equipment.")
+    
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+    
+    if request.method == "POST":
+        # Deleting equipment cascades to delete related EquipmentImage records.
+        equipment.delete()
+        messages.success(request, "Equipment and its images were deleted successfully.")
+        return redirect('core:catalog')
+    
+    # Render a confirmation page.
+    return render(request, 'confirm_delete.html', {'equipment': equipment})
+
+@login_required
 def add_item_image(request, item_id):
+    # Ensure the user is a librarian.
     if not request.user.profile.is_librarian:
         return HttpResponseForbidden("You do not have permission to add images.")
-
+    
     item = get_object_or_404(Equipment, id=item_id)
     
     if request.method == 'POST':
@@ -95,7 +132,9 @@ def add_item_image(request, item_id):
             image_instance = form.save(commit=False)
             image_instance.equipment = item
             image_instance.save()
-            return redirect('core:catalog')
+            messages.success(request, "Image added successfully.")
+            # Redirect back to the edit page so that images can be reviewed.
+            return redirect('core:edit_equipment', equipment_id=item.id)
     else:
         form = ItemImageForm()
     

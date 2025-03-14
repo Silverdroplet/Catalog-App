@@ -55,3 +55,8 @@ class EquipmentImage(models.Model):
     
     def __str__(self):
         return f"Image for {self.equipment.name}"
+    def delete(self, *args, **kwargs):
+        """Override delete to remove the file from S3 (or configured storage) before deleting the record."""
+        if self.image:
+            self.image.delete(save=False)
+        super().delete(*args, **kwargs)

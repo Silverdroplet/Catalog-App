@@ -3,11 +3,13 @@
 {% block title %}Add New Equipment{% endblock %}
 
 {% block content %}
+<div class="container my-5">
   <h1 class="mb-4">Add New Equipment</h1>
   <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Add Equipment</button>
   </form>
-  <a class="btn btn-link mt-3" href="{% url 'core:catalog' %}">Back to Catalog</a>
+  <a href="{% url 'core:catalog' %}" class="btn btn-link mt-3">Back to Catalog</a>
+</div>
 {% endblock %}

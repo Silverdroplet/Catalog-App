@@ -3,11 +3,13 @@
 {% block title %}Add Equipment Image{% endblock %}
 
 {% block content %}
-  <h1 class="mb-4">Add Image for {{ equipment.name }}</h1>
+<div class="container my-5">
+  <h1 class="mb-4">Add Image for {{ item.name }}</h1>
   <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Upload Image</button>
   </form>
-  <a class="btn btn-link mt-3" href="{% url 'core:catalog' %}">Back to Catalog</a>
+  <a href="{% url 'core:edit_equipment' item.id %}" class="btn btn-link mt-3">Back to Edit Equipment</a>
+</div>
 {% endblock %}
