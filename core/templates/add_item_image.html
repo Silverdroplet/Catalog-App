@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Equipment Image</title>
-</head>
-<body>
-    <h1>Add Image for {{ equipment.name }}</h1>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload Image</button>
-    </form>
-    <a href="{% url 'core:catalog' %}">Back to Catalog</a>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Add Equipment Image{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">Add Image for {{ equipment.name }}</h1>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Upload Image</button>
+  </form>
+  <a class="btn btn-link mt-3" href="{% url 'core:catalog' %}">Back to Catalog</a>
+{% endblock %}
