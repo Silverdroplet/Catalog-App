@@ -1,5 +1,6 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.shortcuts import reverse
+from .models import Profile  # Import the Profile model
 from allauth.account.adapter import DefaultAccountAdapter
 from django.contrib.auth.models import Group
 
@@ -9,12 +10,33 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         if user.groups.filter(name="Librarians").exists():
             return reverse("core:librarian")
         return reverse("core:patron")
-class CustomAccountAdapter(DefaultAccountAdapter):
-    def save_user(self, request, user, form, commit=True):
-        user = super().save_user(request, user, form, commit=False)
-        if commit:
-            user.save()
+    
+    def save_user(self, request, sociallogin, form=None):
+        #save user details from Google OAuth and create a profile if needed!
+        user = super().save_user(request, sociallogin, form)
+        
+        if sociallogin and sociallogin.account.provider == 'google':
+            data = sociallogin.account.extra_data
+            user.first_name = data.get('given_name', '')
+            user.last_name = data.get('family_name', '')
+            user.email = data.get('email', '')
+
+            #ensure that the profile exists
+            profile, created = Profile.objects.get_or_create(user = user)
+            profile.profile_picture = data.get('picture', '') #google profile picture URL
+
+            profile.save()
+
         # Assign new users to "Patrons" group by default
+
         group, created = Group.objects.get_or_create(name="Patrons")
         user.groups.add(group)
+
+        if user.groups.filter(name="Librarians").exists():
+            # Optionally, you can assign specific privileges for Librarians if needed
+            pass
+
+        user.save()
+
+
         return user

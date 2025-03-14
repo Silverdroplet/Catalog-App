@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-uxwk@p825#_ad-wayfo=@#g3roef^uo80z+2ce6c7h0$_m*vh&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'sports-equipment-app.herokuapp.com/',
@@ -56,7 +56,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 
+    'storages',
+
     "core",
+
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -67,7 +70,7 @@ AUTHENTICATION_BACKENDS = (
 # Required settings for Django Allauth
 LOGIN_REDIRECT_URL = "/dashboard/"  # Redirect users to dashboard after login
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 
@@ -198,6 +201,21 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
-ACCOUNT_ADAPTER = 'core.adapters.CustomAccountAdapter'
+#ACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
 SITE_ID = 1
+
+#adding AWS credentials
+
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "us-east-2")
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+
+# Tells Django to use S3 for file uploads
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+# Optional settings
+AWS_S3_FILE_OVERWRITE = False  # So files with same name won’t overwrite each other
+AWS_DEFAULT_ACL = None         # Often recommended to let your bucket policy handle ACL

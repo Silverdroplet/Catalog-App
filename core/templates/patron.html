@@ -4,10 +4,20 @@
     <title>Patron Dashboard</title>
 </head>
 <body>
-    <h1>Welcome, {{ name }} ({{ username }})! </h1>
-    <p>
-        Your email: {{ email }}
-    </p>
+    <h1>Welcome, {{ profile.user.get_full_name }}!</h1>
+    <p>Your email: {{ profile.user.email }}</p>
+    <p>Joined on: {{ profile.joined_date }}</p>
+
+    {% if profile.profile_picture %}
+        <!-- Must use .url to display the image from S3 -->
+        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" width="150">
+    {% else %}
+        <p>No profile picture uploaded.</p>
+    {% endif %}
+
+    <!-- Add a link to let patrons upload or change their profile picture -->
+    <p><a href="{% url 'core:upload_profile_picture' %}">Upload/Change Profile Picture</a></p>
+
     <a href="{% url 'core:catalog' %}">Browse Catalog</a>
     <form action="{% url 'core:logout' %}" method="post">
         {% csrf_token %}

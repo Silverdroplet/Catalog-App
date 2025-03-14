@@ -4,12 +4,42 @@
     <title>Catalog</title>
 </head>
 <body>
-    <h1>Available Equipment</h1>
+    <h1>Equipment Catalog</h1>
+
+    <!-- Show "Add New Equipment" only to librarians -->
+    {% if user.is_authenticated and user.profile.is_librarian %}
+        <p><a href="{% url 'core:add_equipment' %}">Add New Equipment</a></p>
+    {% endif %}
+
     <ul>
         {% for item in items %}
-            <li>{{ item.name }} - {% if item.is_available %} Available {% else %} Loaned Out {% endif %}</li>
+            <li style="margin-bottom: 20px;">
+                <strong>{{ item.name }}</strong>
+                <br>
+                {% for image_obj in item.images.all %}
+                    <img src="{{ image_obj.image.url }}" alt="{{ item.name }}" width="150">
+                    {% if image_obj.caption %}
+                        <p>{{ image_obj.caption }}</p>
+                    {% endif %}
+                {% empty %}
+                    <em>No images available</em>
+                {% endfor %}
+                <br>
+                {% if item.is_available %}
+                    Status: <span style="color: green;">Available</span>
+                {% else %}
+                    Status: <span style="color: red;">Loaned Out</span>
+                {% endif %}
+
+                <!-- Show "Add Image" only to librarians -->
+                {% if user.is_authenticated and user.profile.is_librarian %}
+                    <p><a href="{% url 'core:add_item_image' item.id %}">Add Image</a></p>
+                {% endif %}
+            </li>
         {% endfor %}
     </ul>
-    <a href="{% url 'core:home' %}">Back to Home</a>
+
+    <p><a href="{% url 'core:home' %}">Back to Home</a></p>
 </body>
 </html>
+
