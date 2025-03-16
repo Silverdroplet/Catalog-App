@@ -6,8 +6,8 @@ from django.views.generic import TemplateView, ListView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
 from django.contrib import messages
-from .models import Equipment, Profile
-from .forms import ProfileForm, EquipmentForm, ItemImageForm
+from .models import Equipment, Profile, Review
+from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -16,6 +16,13 @@ class CatalogView(ListView):
     model = Equipment
     template_name = "catalog.html"
     context_object_name = "items"
+
+    def get_context_data(self, **kwargs):
+        """Fetch all reviews and pass them to catalog.html"""
+        context = super().get_context_data(**kwargs)
+        context["reviews"] = Review.objects.select_related("equipment", "user").all()
+        context["review_form"] = ReviewForm() 
+        return context
 
 class CustomLoginView(LoginView):
     template_name = "login.html"
@@ -139,3 +146,27 @@ def add_item_image(request, item_id):
         form = ItemImageForm()
     
     return render(request, 'add_item_image.html', {'form': form, 'item': item})
+
+@login_required
+def submit_review(request, item_id):
+    """Handles the submission of new reviews."""
+    item = get_object_or_404(Equipment, id=item_id)
+    
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.equipment = item
+            review.user = request.user
+            review.save()
+            messages.success(request, "Your review has been submitted.")
+            return redirect("core:catalog")
+
+        # If form is invalid, re-render catalog page with errors
+        messages.error(request, "There was an error submitting your review.")
+        return render(
+            request,
+            "catalog.html",
+            {"items": Equipment.objects.all(), "reviews": Review.objects.all(), "review_form": form}
+        )
+    return redirect("core:catalog")

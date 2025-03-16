@@ -72,6 +72,45 @@
         </a>
       {% endif %}
     </li>
+
+      <!-- Reviews Section -->
+      <h5>Reviews</h5>
+      {% with item_reviews=reviews|dictsort:"-created_at" %}
+        {% for review in reviews %}
+          {% if review.equipment == item %}
+            <p><strong>{{ review.user.username }}</strong> rated it {{ review.rating }}/5</p>
+            <p>{{ review.comment }}</p>
+            <hr>
+          {% endif %}
+        {% empty %}
+          <p>No reviews yet. Be the first to review this item!</p>
+        {% endfor %}
+      {% endwith %}
+
+      <!-- Submit a Review -->
+      {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'core:submit_review' item.id %}">
+          {% csrf_token %}
+          
+          <!-- Rating Selection -->
+          <label for="rating"><strong>Rating (1-5):</strong></label>
+          <select name="rating" class="form-select" required>
+            <option value="1">1 - Poor</option>
+            <option value="2">2 - Fair</option>
+            <option value="3">3 - Good</option>
+            <option value="4">4 - Very Good</option>
+            <option value="5">5 - Excellent</option>
+          </select>
+
+          <!-- Review Comment -->
+          <label for="comment"><strong>Comment:</strong></label>
+          <textarea name="comment" class="form-control" rows="3"></textarea>
+
+          <button type="submit" class="btn btn-primary mt-2">Submit Review</button>
+        </form>
+      {% else %}
+        <p><a href="{% url 'core:login' %}">Log in</a> to leave a review.</p>
+      {% endif %}
   {% endfor %}
 </ul>
 
