@@ -91,6 +91,15 @@
     footer a:hover {
       text-decoration: underline;
     }
+    .row {
+      display: flex;
+      flex-wrap: nowrap; /* Ensures it doesn't stack */
+    }
+
+    .col-md-4, .col-md-8 {
+      min-height: 300px; /* Ensures columns take up space */
+    }
+    
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -137,9 +146,10 @@
     </div>
   </nav>
 
+  
   <!-- Main Content -->
-  <div class="container content-wrapper">
-    {% if messages %}
+  <div class="container-fluid content-wrapper">
+      {% if messages %}
       {% for message in messages %}
         <div class="alert alert-dismissible fade show mt-3 {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
           {{ message }}
