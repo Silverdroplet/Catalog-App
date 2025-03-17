@@ -43,8 +43,9 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             profile.save()
 
         # Assign users to the "Patrons" group by default
-        group, created = Group.objects.get_or_create(name="Patrons")
-        user.groups.add(group)
+        if not user.groups.exists():  # Check if user is in any group
+            group, created = Group.objects.get_or_create(name="Patrons")
+            user.groups.add(group)
 
         user.save()
         return user
