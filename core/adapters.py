@@ -40,7 +40,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             # Ensure profile exists
             profile, created = Profile.objects.get_or_create(user=user)
             profile.profile_picture = data.get("picture", "")
-            profile.save()
 
         # Assign users to the "Patrons" group by default
         if not user.groups.exists():  # Check if user is in any group
@@ -52,6 +51,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             profile.is_librarian = True
 
 
-
+        profile.save()
         user.save()
         return user
