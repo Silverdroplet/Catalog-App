@@ -93,7 +93,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        'REDIRECT_URI': 'https://sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com/accounts/google/login/callback/'
+       # 'REDIRECT_URI': 'https://sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com/accounts/google/login/callback/'
     }
 }
 
@@ -102,6 +102,12 @@ SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
     'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
     'key': ''
 }
+
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_USERNAME_REQUIRED = False
 
 LOGIN_REDIRECT_URL = "/dashboard/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"

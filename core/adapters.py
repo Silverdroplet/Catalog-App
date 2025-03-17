@@ -1,8 +1,9 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from django.shortcuts import reverse
-from .models import Profile  # Import the Profile model
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.adapter import DefaultAccountAdapter
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
+from django.shortcuts import reverse
+from .models import Profile
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def get_login_redirect_url(self, request):
@@ -10,33 +11,40 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         if user.groups.filter(name="Librarians").exists():
             return reverse("core:librarian")
         return reverse("core:patron")
-    
-    def save_user(self, request, sociallogin, form=None):
-        #save user details from Google OAuth and create a profile if needed!
-        user = super().save_user(request, sociallogin, form)
+
+    def pre_social_login(self, request, sociallogin):
+        """This function runs before social login completes."""
+        # If the user is already logged in, return
+        if sociallogin.user.id:
+            return
         
-        if sociallogin and sociallogin.account.provider == 'google':
+        email = sociallogin.account.extra_data.get("email")
+
+        if email:
+            try:
+                # Check if a user already exists with the same email
+                user = User.objects.get(email=email)
+                sociallogin.connect(request, user)  # Link Google login to existing user
+            except User.DoesNotExist:
+                pass  # Continue with new user creation
+
+    def save_user(self, request, sociallogin, form=None):
+        user = super().save_user(request, sociallogin, form)
+
+        if sociallogin and sociallogin.account.provider == "google":
             data = sociallogin.account.extra_data
-            user.first_name = data.get('given_name', '')
-            user.last_name = data.get('family_name', '')
-            user.email = data.get('email', '')
+            user.first_name = data.get("given_name", "")
+            user.last_name = data.get("family_name", "")
+            user.email = data.get("email", "")
 
-            #ensure that the profile exists
-            profile, created = Profile.objects.get_or_create(user = user)
-            profile.profile_picture = data.get('picture', '') #google profile picture URL
-
+            # Ensure profile exists
+            profile, created = Profile.objects.get_or_create(user=user)
+            profile.profile_picture = data.get("picture", "")
             profile.save()
 
-        # Assign new users to "Patrons" group by default
-
+        # Assign users to the "Patrons" group by default
         group, created = Group.objects.get_or_create(name="Patrons")
         user.groups.add(group)
 
-        if user.groups.filter(name="Librarians").exists():
-            # Optionally, you can assign specific privileges for Librarians if needed
-            pass
-
         user.save()
-
-
         return user
