@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.db.utils import OperationalError, ProgrammingError
 
 
 class CoreConfig(AppConfig):
@@ -9,5 +10,11 @@ class CoreConfig(AppConfig):
         import core.signals
         """Ensure groups exist when the app starts."""
         from django.contrib.auth.models import Group
-        Group.objects.get_or_create(name="Librarians")
-        Group.objects.get_or_create(name="Patrons")
+        try:
+            Group.objects.get_or_create(name="Librarians")
+        except (OperationalError, ProgrammingError):
+            pass
+        try: 
+            Group.objects.get_or_create(name="Patrons")
+        except (OperationalError, ProgrammingError):
+            pass
