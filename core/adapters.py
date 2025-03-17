@@ -47,6 +47,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             group, created = Group.objects.get_or_create(name="Patrons")
             user.groups.add(group)
             profile.is_librarian = False
+        
+        if user.groups.filter(name="Librarians").exists():
+            profile.is_librarian = True
+
+
 
         user.save()
         return user
