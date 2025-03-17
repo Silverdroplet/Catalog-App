@@ -46,6 +46,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         if not user.groups.exists():  # Check if user is in any group
             group, created = Group.objects.get_or_create(name="Patrons")
             user.groups.add(group)
+            profile.is_librarian = False
 
         user.save()
         return user
