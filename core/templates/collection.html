@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>{{ collection.title }}</h1>
+  <p>{{ collection.description }}</p>
+  <p>Visibility: {{ collection.get_visibility_display }}</p>
+  <h3>Items in Collection:</h3>
+  {% for item in collection.items.all %}
+  <li>
+      <strong>{{ item.name }}</strong> ({{ item.status }})
+      <br>
+      <small>ID: {{ item.identifier }}</small>
+      <br>
+      <small>Description: {{item.description}}</small>
+      <br>
+      <small>Location: {{ item.location }}</small>
+      <br>
+  </li>
+    {% empty %}
+    <p>No items in this collection. Add one!</p>
+    {% endfor %}     
+<a href="{% url 'core:edit_collection' collection.id %}">Edit This Collection</a>
+{% endblock %}

@@ -6,8 +6,8 @@ from django.views.generic import TemplateView, ListView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
 from django.contrib import messages
-from .models import Equipment, Profile, Review
-from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm
+from .models import Equipment, Profile, Review, Collection
+from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -170,3 +170,43 @@ def submit_review(request, item_id):
             {"items": Equipment.objects.all(), "reviews": Review.objects.all(), "review_form": form}
         )
     return redirect("core:catalog")
+
+@login_required
+def add_collection(request):
+    if request.method == 'POST':
+        form = CollectionForm(request.POST, user=request.user)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.creator = request.user  
+            if not request.user.profile.is_librarian:
+                collection.visibility = 'public'  
+            collection.save()
+            form.save_m2m() 
+            return redirect('core:view_collection', collection_id=collection.id)
+    else:
+        form = CollectionForm(user=request.user)
+    
+    return render(request, 'add_collections.html', {'form': form})
+
+@login_required
+def my_collections(request):
+    collections = Collection.objects.filter(creator=request.user)
+    return render(request, 'view_collections.html', {'collections': collections})
+
+@login_required
+def edit_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id, creator=request.user)
+
+    if request.method == 'POST':
+        form = CollectionForm(request.POST, instance=collection, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('core:my_collections')
+    else:
+        form = CollectionForm(instance=collection, user=request.user)
+
+    return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+
+def view_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+    return render(request, 'collection.html', {'collection': collection})

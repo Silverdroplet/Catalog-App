@@ -3,7 +3,7 @@ from django.contrib.auth.views import LogoutView
 from .views import (
     HomeView, CatalogView, CustomLoginView, dashboard_redirect,
     PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
-    add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review
+    add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, my_collections, edit_collection, view_collection
 )
 
 app_name = "core"
@@ -23,4 +23,8 @@ urlpatterns = [
     path("equipment/<int:equipment_id>/delete/", delete_equipment, name="delete_equipment"),
     path("dashboard/librarian/add-item-image/<int:item_id>/", add_item_image, name="add_item_image"),
     path("submit_review/<int:item_id>/", submit_review, name="submit_review"),
+    path('dashboard/collections/add/', add_collection, name='add_collection'),
+    path('dashboard/collections', my_collections, name='my_collections'),
+    path('collections/<int:collection_id>/', view_collection, name='view_collection'),
+    path('dashboard/collections/edit/<int:collection_id>/', edit_collection, name='edit_collection'),
 ]

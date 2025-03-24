@@ -3,6 +3,45 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+
+class Collection(models.Model):
+    VISIBILITY_CHOICES = [
+        ('public', 'Public'),
+        ('private', 'Private')
+    ]
+    
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_collections')
+    visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='public')
+    allowed_users = models.ManyToManyField(User, blank=True, related_name='allowed_collections')
+    items = models.ManyToManyField('Equipment', related_name='inCollections', blank=True)
+    
+    def __str__(self):
+        return self.title
+
+    def is_accessible_by(self, user):
+        return self.visibility == 'public' or user in self.allowed_users.all() or user.profile.is_librarian
+
+    def clean(self):
+
+        if self.visibility == 'private':
+            for item in self.items.all():
+                private_collections = Collection.objects.filter(
+                    visibility='private',
+                    items=item
+                ).exclude(id=self.id)
+
+                if private_collections.exists():
+                    raise ValidationError(
+                        f'Item "{item}" is already in another private collection.'
+                    )
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 class Equipment(models.Model):
     STATUS_CHOICES = [
@@ -20,7 +59,7 @@ class Equipment(models.Model):
     added_date = models.DateTimeField(auto_now_add=True)
     # This field tracks which librarian added the item; enforce librarian-only access in your views.
     added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='added_equipments')
-   
+    collections = models.ManyToManyField('Collection', related_name='equipment', blank=True)     
     def __str__(self):
         return self.name
 
