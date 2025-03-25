@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView, ListView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden
 from django.contrib import messages
-from .models import Equipment, Profile, Review, Collection
+from .models import Equipment, Profile, Review, Collection, User
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
+from django.http import HttpResponseRedirect
+from .models import Collection, CollectionAccessRequest
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -191,7 +193,30 @@ def add_collection(request):
 @login_required
 def my_collections(request):
     collections = Collection.objects.filter(creator=request.user)
-    return render(request, 'view_collections.html', {'collections': collections})
+
+    collection_requests = {
+        collection.id: collection.access_requests.all()
+        for collection in collections
+    }
+
+    if request.method == "POST":
+        collection_id = request.POST.get("collection_id")
+        user_id = request.POST.get("user_id")
+        
+        if collection_id and user_id:
+            collection = get_object_or_404(Collection, id=collection_id)
+            user = get_object_or_404(User, id=user_id)
+
+            if request.user.profile.is_librarian:
+                collection.allowed_users.add(user)  
+                collection.access_requests.remove(user) 
+                collection.save()
+                messages.success(request, f"Access granted to {user.username} for {collection.title}.")
+
+    return render(request, 'view_collections.html', {
+        'collections': collections,
+        'collection_requests': collection_requests
+    })
 
 @login_required
 def edit_collection(request, collection_id):
@@ -209,4 +234,39 @@ def edit_collection(request, collection_id):
 
 def view_collection(request, collection_id):
     collection = get_object_or_404(Collection, id=collection_id)
-    return render(request, 'collection.html', {'collection': collection})
+
+    if collection.visibility == 'public' or request.user.profile.is_librarian:
+        return render(request, 'collection.html', {'collection': collection})
+
+    if request.user in collection.access_requests.all():
+        return render(request, 'collection.html', {'collection': collection})
+
+    if request.method == "POST" and "request_access" in request.POST:
+        existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
+        if not existing_request:
+            CollectionAccessRequest.objects.create(user=request.user, collection=collection)
+            collection.access_requests.add(request.user) 
+            collection.save()
+            messages.success(request, "Your request has been submitted.")
+
+        return HttpResponseRedirect(reverse('core:view_collection', args=[collection.id]))  
+
+    access_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
+    
+    return render(request, 'collection.html', {'collection': collection, 'access_request': access_request})
+
+@login_required
+def approve_access(request, collection_id, user_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    if collection.creator == request.user or request.user.profile.is_librarian:
+        access_request = get_object_or_404(CollectionAccessRequest, collection=collection, user_id=user_id)
+        access_request.approved = True
+        access_request.save()
+        collection.allowed_users.add(access_request.user)
+        collection.save()
+        access_request.delete()
+
+        return redirect('core:view_collection', collection_id=collection.id)
+
+    return redirect('core:dashboard') 

@@ -18,7 +18,8 @@ class Collection(models.Model):
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='public')
     allowed_users = models.ManyToManyField(User, blank=True, related_name='allowed_collections')
     items = models.ManyToManyField('Equipment', related_name='inCollections', blank=True)
-    
+    access_requests = models.ManyToManyField(User, related_name='requested_collections', blank=True)
+
     def __str__(self):
         return self.title
 
@@ -26,18 +27,18 @@ class Collection(models.Model):
         return self.visibility == 'public' or user in self.allowed_users.all() or user.profile.is_librarian
 
     def clean(self):
+        if self.pk:
+            if self.visibility == 'private':
+                for item in self.items.all():
+                    private_collections = Collection.objects.filter(
+                        visibility='private',
+                        items=item
+                    ).exclude(id=self.id)
 
-        if self.visibility == 'private':
-            for item in self.items.all():
-                private_collections = Collection.objects.filter(
-                    visibility='private',
-                    items=item
-                ).exclude(id=self.id)
-
-                if private_collections.exists():
-                    raise ValidationError(
-                        f'Item "{item}" is already in another private collection.'
-                    )
+                    if private_collections.exists():
+                        raise ValidationError(
+                            f'Item "{item}" is already in another private collection.'
+                        )
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -121,3 +122,12 @@ class EquipmentImage(models.Model):
         if self.image:
             self.image.delete(save=False)
         super().delete(*args, **kwargs)
+
+class CollectionAccessRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')], default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} requested access to {self.collection.title}"

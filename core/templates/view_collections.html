@@ -4,35 +4,46 @@
     <h2>My Collections</h2>
     <ul>
         {% for collection in collections %}
-            <li>
-                <h2>{{ collection.title }}</h2> Description:  {{ collection.description }}
-                {% if user.is_authenticated and user.profile.is_librarian %}
-                <br><br>
-                ({{collection.visibility}}) 
-                {% endif %}
-                <h3>Collection items:</h3>
-                {% if collection.items.all %}
-                    <ul>
-                        {% for item in collection.items.all %}
-                            <li>
-                                <strong>{{ item.name }}</strong> ({{ item.status }})
-                                <br>
-                                <small>ID: {{ item.identifier }}</small>
-                                <br>
-                                <small>Description: {{item.description}}</small>
-                                <br>
-                                <small>Location: {{ item.location }}</small>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No items in this collection.</p>
-                {% endif %}
-            </li>
-            <a href="{% url 'core:edit_collection' collection.id %}">Edit</a>
-        {% empty %}
-            <p>You have no collections. Create a new one!</p>
-            <a href="{% url 'core:add_collection' %}">Edit</a>
-        {% endfor %}
+    <li>
+        <h2>{{ collection.title }}</h2> 
+        Description:  {{ collection.description }}
+
+        <h3>Collection items:</h3>
+        {% if collection.items.all %}
+            <ul>
+                {% for item in collection.items.all %}
+                    <li>
+                        <strong>{{ item.name }}</strong> ({{ item.status }})
+                        <br>
+                        <small>ID: {{ item.identifier }}</small>
+                        <br>
+                        <small>Description: {{ item.description }}</small>
+                        <br>
+                        <small>Location: {{ item.location }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No items in this collection.</p>
+        {% endif %}
+
+        {% if collection.access_requests.all %}
+            <h3>Access Requests:</h3>
+            <ul>
+                {% for user in collection.access_requests.all %}
+                    <li>
+                        {{ user.username }}
+                        <form method="post" action="{% url 'core:approve_access' collection.id user.id %}">
+                            {% csrf_token %}
+                            <button type="submit">Approve</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No access requests.</p>
+        {% endif %}
+    </li>
+{% endfor %}
     </ul>
 {% endblock %}

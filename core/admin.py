@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Equipment, EquipmentImage, Collection
+from .models import Profile, Equipment, EquipmentImage, Collection, CollectionAccessRequest
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -18,3 +18,7 @@ class CollectionAdmin(admin.ModelAdmin):
     list_display = ('title', 'creator', 'visibility')
     search_fields = ('title', 'creator__username')
     list_filter = ('visibility',)
+
+@admin.register(CollectionAccessRequest)
+class CollectionAccessRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'collection', 'status', 'timestamp')
