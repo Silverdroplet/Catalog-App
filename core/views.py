@@ -10,6 +10,8 @@ from .models import Equipment, Profile, Review, Collection, User
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
 from .models import Collection, CollectionAccessRequest
+from django.db.models import Q
+from django.db import transaction
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -176,7 +178,7 @@ def submit_review(request, item_id):
 @login_required
 def add_collection(request):
     if request.method == 'POST':
-        form = CollectionForm(request.POST, user=request.user)
+        form = CollectionForm(request.POST, user=request.user, request=request)
         if form.is_valid():
             collection = form.save(commit=False)
             collection.creator = request.user  
@@ -198,7 +200,14 @@ def my_collections(request):
         collection.id: collection.access_requests.all()
         for collection in collections
     }
-
+    modification_logs = {}  
+    for collect in collections:
+        logs = collect.modification_logs.splitlines() if collect.modification_logs else []
+        if logs:
+            modification_logs[collect.id] = logs
+        with transaction.atomic():  
+            collect.modification_logs = ""  
+            collect.save()
     if request.method == "POST":
         collection_id = request.POST.get("collection_id")
         user_id = request.POST.get("user_id")
@@ -215,7 +224,8 @@ def my_collections(request):
 
     return render(request, 'view_collections.html', {
         'collections': collections,
-        'collection_requests': collection_requests
+        'collection_requests': collection_requests, 
+        'modification_logs': modification_logs
     })
 
 @login_required
@@ -264,9 +274,30 @@ def approve_access(request, collection_id, user_id):
         access_request.approved = True
         access_request.save()
         collection.allowed_users.add(access_request.user)
+        collection.access_requests.remove(access_request.user)
         collection.save()
         access_request.delete()
 
         return redirect('core:view_collection', collection_id=collection.id)
 
     return redirect('core:dashboard') 
+
+def collection_catalog(request):
+    query = request.GET.get('q', '')  
+    collections = Collection.objects.all()
+
+    if query:
+        collections = collections.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(items__name__icontains=query))
+
+    return render(request, 'collection_catalog.html', {'collections': collections, 'query': query})
+
+@login_required
+def delete_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+    if request.user == collection.creator or request.user.profile.is_librarian:
+        collection.delete()
+        messages.success(request, f'Collection "{collection.title}" deleted successfully.')
+    else:
+        messages.error(request, "You do not have permission to delete this collection.")
+
+    return redirect('core:my_collections')  

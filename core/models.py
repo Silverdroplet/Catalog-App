@@ -17,9 +17,9 @@ class Collection(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_collections')
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='public')
     allowed_users = models.ManyToManyField(User, blank=True, related_name='allowed_collections')
-    items = models.ManyToManyField('Equipment', related_name='inCollections', blank=True)
+    items = models.ManyToManyField('Equipment', related_name='collections', blank=True)
     access_requests = models.ManyToManyField(User, related_name='requested_collections', blank=True)
-
+    modification_logs = models.TextField(blank=True, null=True) 
     def __str__(self):
         return self.title
 
@@ -59,8 +59,7 @@ class Equipment(models.Model):
     location = models.CharField(max_length=255, blank=True)
     added_date = models.DateTimeField(auto_now_add=True)
     # This field tracks which librarian added the item; enforce librarian-only access in your views.
-    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='added_equipments')
-    collections = models.ManyToManyField('Collection', related_name='equipment', blank=True)     
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='added_equipments')    
     def __str__(self):
         return self.name
 
