@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Catalog</h1>
+
+    <!-- Search Form -->
+    <form method="GET" action="{% url 'core:collection_catalog' %}">
+        <input type="text" name="q" placeholder="Search collections..." value="{{ query }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <ul>
+        {% for collection in collections %}
+            <li>
+                <h2>{{ collection.title }}</h2>
+
+                {% if collection.visibility == 'public' %}
+                    <p>{{ collection.description }}</p>
+                    <p>Visibility: Public</p>
+                    <a href="{% url 'core:view_collection' collection.id %}">View Collection</a>
+                {% else %}
+                    <p><em>(Private collection, details hidden)</em></p>
+                {% endif %}
+            </li>
+        {% empty %}
+            <p>No collections found.</p>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -3,11 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView, ListView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden
 from django.contrib import messages
-from .models import Equipment, Profile, Review
-from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm
+from .models import Equipment, Profile, Review, Collection, User
+from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
+from django.http import HttpResponseRedirect
+from .models import Collection, CollectionAccessRequest
+from django.db.models import Q
+from django.db import transaction
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -170,3 +174,130 @@ def submit_review(request, item_id):
             {"items": Equipment.objects.all(), "reviews": Review.objects.all(), "review_form": form}
         )
     return redirect("core:catalog")
+
+@login_required
+def add_collection(request):
+    if request.method == 'POST':
+        form = CollectionForm(request.POST, user=request.user, request=request)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.creator = request.user  
+            if not request.user.profile.is_librarian:
+                collection.visibility = 'public'  
+            collection.save()
+            form.save_m2m() 
+            return redirect('core:view_collection', collection_id=collection.id)
+    else:
+        form = CollectionForm(user=request.user)
+    
+    return render(request, 'add_collections.html', {'form': form})
+
+@login_required
+def my_collections(request):
+    collections = Collection.objects.filter(creator=request.user)
+
+    collection_requests = {
+        collection.id: collection.access_requests.all()
+        for collection in collections
+    }
+    modification_logs = {}  
+    for collect in collections:
+        logs = collect.modification_logs.splitlines() if collect.modification_logs else []
+        if logs:
+            modification_logs[collect.id] = logs
+        with transaction.atomic():  
+            collect.modification_logs = ""  
+            collect.save()
+    if request.method == "POST":
+        collection_id = request.POST.get("collection_id")
+        user_id = request.POST.get("user_id")
+        
+        if collection_id and user_id:
+            collection = get_object_or_404(Collection, id=collection_id)
+            user = get_object_or_404(User, id=user_id)
+
+            if request.user.profile.is_librarian:
+                collection.allowed_users.add(user)  
+                collection.access_requests.remove(user) 
+                collection.save()
+                messages.success(request, f"Access granted to {user.username} for {collection.title}.")
+
+    return render(request, 'view_collections.html', {
+        'collections': collections,
+        'collection_requests': collection_requests, 
+        'modification_logs': modification_logs
+    })
+
+@login_required
+def edit_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id, creator=request.user)
+
+    if request.method == 'POST':
+        form = CollectionForm(request.POST, instance=collection, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('core:my_collections')
+    else:
+        form = CollectionForm(instance=collection, user=request.user)
+
+    return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+
+def view_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    if collection.visibility == 'public' or request.user.profile.is_librarian:
+        return render(request, 'collection.html', {'collection': collection})
+
+    if request.user in collection.access_requests.all():
+        return render(request, 'collection.html', {'collection': collection})
+
+    if request.method == "POST" and "request_access" in request.POST:
+        existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
+        if not existing_request:
+            CollectionAccessRequest.objects.create(user=request.user, collection=collection)
+            collection.access_requests.add(request.user) 
+            collection.save()
+            messages.success(request, "Your request has been submitted.")
+
+        return HttpResponseRedirect(reverse('core:view_collection', args=[collection.id]))  
+
+    access_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
+    
+    return render(request, 'collection.html', {'collection': collection, 'access_request': access_request})
+
+@login_required
+def approve_access(request, collection_id, user_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    if collection.creator == request.user or request.user.profile.is_librarian:
+        access_request = get_object_or_404(CollectionAccessRequest, collection=collection, user_id=user_id)
+        access_request.approved = True
+        access_request.save()
+        collection.allowed_users.add(access_request.user)
+        collection.access_requests.remove(access_request.user)
+        collection.save()
+        access_request.delete()
+
+        return redirect('core:view_collection', collection_id=collection.id)
+
+    return redirect('core:dashboard') 
+
+def collection_catalog(request):
+    query = request.GET.get('q', '')  
+    collections = Collection.objects.all()
+
+    if query:
+        collections = collections.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(items__name__icontains=query))
+
+    return render(request, 'collection_catalog.html', {'collections': collections, 'query': query})
+
+@login_required
+def delete_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+    if request.user == collection.creator or request.user.profile.is_librarian:
+        collection.delete()
+        messages.success(request, f'Collection "{collection.title}" deleted successfully.')
+    else:
+        messages.error(request, "You do not have permission to delete this collection.")
+
+    return redirect('core:my_collections')  

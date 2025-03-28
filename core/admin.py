@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Profile
-from .models import Equipment, EquipmentImage 
+from .models import Profile, Equipment, EquipmentImage, Collection, CollectionAccessRequest
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -13,3 +12,13 @@ class EquipmentAdmin(admin.ModelAdmin):
 @admin.register(EquipmentImage)
 class EquipmentImageAdmin(admin.ModelAdmin):
     list_display = ('equipment', 'caption', 'image')
+
+@admin.register(Collection)
+class CollectionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'creator', 'visibility')
+    search_fields = ('title', 'creator__username')
+    list_filter = ('visibility',)
+
+@admin.register(CollectionAccessRequest)
+class CollectionAccessRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'collection', 'status', 'timestamp')
