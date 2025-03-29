@@ -32,14 +32,12 @@
     /* Navbar styles */
     .navbar-custom {
       background-color: #232D4B; /* UVA Navy */
-      /* Use flex so brand and nav are side-by-side on one line */
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0.8rem 1rem;
-      white-space: nowrap; /* Prevent wrapping onto multiple lines */
+      white-space: nowrap; /* Prevent nav items from wrapping */
     }
-    /* Brand (Home) link */
     .navbar-custom .navbar-brand {
       color: #E57200 !important;
       font-weight: bold;
@@ -50,7 +48,6 @@
     .navbar-custom .navbar-brand:hover {
       color: #ffffff !important;
     }
-    /* UL as a horizontal nav (no collapse) */
     .navbar-custom ul.nav {
       margin: 0;
       padding: 0;
@@ -70,7 +67,6 @@
     .navbar-custom .nav-link:hover {
       color: #E57200 !important;
     }
-    /* Logout button styled like a link */
     .navbar-custom .logout-btn {
       background: none;
       border: none;
@@ -89,7 +85,11 @@
       background-color: #232D4B;
       color: #ffffff;
       text-align: center;
-      padding: 1rem 0;
+      padding: 0.3rem 0;  /* Reduced padding */
+      font-size: 0.8rem;  /* Smaller text size */
+      line-height: 1;     /* Tighter line spacing */
+      /* If you want the footer to allow scrolling on very narrow screens, use: */
+      overflow-x: auto;   /* Show scrollbar if it's too narrow */
     }
     footer a {
       color: #E57200;
@@ -98,16 +98,19 @@
     footer a:hover {
       text-decoration: underline;
     }
+    /* Force everything in the footer to stay on one line */
+    .footer-credits {
+      white-space: nowrap;      /* Prevent line breaks */
+      display: inline-block;    /* Keep the entire text together */
+      margin: 0;                /* Remove default margins */
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
   <!-- Navbar: single row, brand + nav items -->
   <nav class="navbar-custom">
-    <!-- Brand (shorter text) -->
     <a class="navbar-brand" href="{% url 'core:home' %}">Home</a>
-
-    <!-- Horizontal Nav Items (UL) -->
     <ul class="nav mb-0">
       <li class="nav-item">
         <a class="nav-link" href="{% url 'core:catalog' %}">Catalog</a>
@@ -149,13 +152,12 @@
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Footer -->
+  <!-- Footer: All on one line -->
   <footer>
-    <p class="mb-0">&copy; 2025 Sports Gear Lending @ UVA</p>
-    <small>
-      A class project. Not monitored. 
+    <p class="footer-credits">
+      &copy; 2025 Sports Gear Lending @ UVA | A class project. Not monitored. 
       <a href="https://www.virginia.edu" target="_blank" rel="noopener">University of Virginia</a>
-    </small>
+    </p>
   </footer>
 
   <!-- Bootstrap JS (CDN) -->
@@ -167,5 +169,3 @@
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
-
-
