@@ -57,6 +57,7 @@ class PatronDashboardView(LoginRequiredMixin, TemplateView):
         context["name"] = user.first_name if user.first_name else "Guest"
         context["username"] = user.email.split('@')[0] if user.email else user.username
         context["email"] = user.email if user.email else "No email provided"
+        context["equipment_list"] = user.borrowed_equipment.all()
         return context
 
 class LibrarianDashboardView(LoginRequiredMixin, TemplateView):
