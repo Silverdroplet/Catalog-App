@@ -5,10 +5,10 @@
   <meta charset="UTF-8">
   <title>{% block title %}Sports Gear Lending @ UVA{% endblock %}</title>
   <!-- Bootstrap CSS (CDN) -->
-  <link 
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
-    rel="stylesheet" 
-    integrity="sha384-ENjdO4Dr2bkBIFxQpeo7z2Pc2QpE3gnzZQ7byf6FBSfuaZ2MVvF4JQZbXkC3tFn" 
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeo7z2Pc2QpE3gnzZQ7byf6FBSfuaZ2MVvF4JQZbXkC3tFn"
     crossorigin="anonymous"
   >
   <style>
@@ -32,45 +32,52 @@
     /* Navbar styles */
     .navbar-custom {
       background-color: #232D4B; /* UVA Navy */
+      /* Use flex so brand and nav are side-by-side on one line */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 0.8rem 1rem;
+      white-space: nowrap; /* Prevent wrapping onto multiple lines */
     }
-    .navbar-nav {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-    }
+    /* Brand (Home) link */
     .navbar-custom .navbar-brand {
       color: #E57200 !important;
       font-weight: bold;
       text-decoration: none;
       font-size: 1.3rem;
+      margin-right: 2rem;
     }
     .navbar-custom .navbar-brand:hover {
       color: #ffffff !important;
     }
+    /* UL as a horizontal nav (no collapse) */
+    .navbar-custom ul.nav {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    .navbar-custom .nav-item {
+      margin-left: 1rem;
+      list-style-type: none;
+    }
     .navbar-custom .nav-link {
       color: #ffffff !important;
       text-decoration: none !important;
-      margin-right: 1rem;
       font-weight: 500;
     }
     .navbar-custom .nav-link:hover {
       color: #E57200 !important;
     }
-    .navbar-toggler {
-      border: none;
-    }
-    .navbar-toggler-icon {
-      filter: invert(100%);
-    }
+    /* Logout button styled like a link */
     .navbar-custom .logout-btn {
       background: none;
       border: none;
       color: #ffffff;
-      padding: 0;
-      margin-right: 1rem;
       font-weight: 500;
       text-decoration: none;
+      padding: 0;
     }
     .navbar-custom .logout-btn:hover {
       color: #E57200;
@@ -95,46 +102,38 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-md navbar-custom">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'core:home' %}">
-        Sports Gear Lending @ UVA
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
-              data-bs-target="#navbarNav" aria-controls="navbarNav" 
-              aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
+  <!-- Navbar: single row, brand + nav items -->
+  <nav class="navbar-custom">
+    <!-- Brand (shorter text) -->
+    <a class="navbar-brand" href="{% url 'core:home' %}">Home</a>
+
+    <!-- Horizontal Nav Items (UL) -->
+    <ul class="nav mb-0">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:catalog' %}">Catalog</a>
+      </li>
+      {% if user.is_authenticated %}
+        {% if user.profile.is_librarian %}
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:catalog' %}">Catalog</a>
+            <a class="nav-link" href="{% url 'core:librarian' %}">Dashboard</a>
           </li>
-          {% if user.is_authenticated %}
-            {% if user.profile.is_librarian %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:librarian' %}">Dashboard</a>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:patron' %}">Dashboard</a>
-              </li>
-            {% endif %}
-            <li class="nav-item">
-              <form action="{% url 'core:logout' %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn nav-link">Logout</button>
-              </form>
-            </li>
-          {% else %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% provider_login_url 'google' %}">Login</a>
-            </li>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:patron' %}">Dashboard</a>
+          </li>
+        {% endif %}
+        <li class="nav-item">
+          <form action="{% url 'core:logout' %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn nav-link">Logout</button>
+          </form>
+        </li>
+      {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% provider_login_url 'google' %}">Login</a>
+        </li>
+      {% endif %}
+    </ul>
   </nav>
 
   <!-- Main Content -->
@@ -150,7 +149,7 @@
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Footer (Credentials moved to very bottom) -->
+  <!-- Footer -->
   <footer>
     <p class="mb-0">&copy; 2025 Sports Gear Lending @ UVA</p>
     <small>
@@ -160,11 +159,13 @@
   </footer>
 
   <!-- Bootstrap JS (CDN) -->
-  <script 
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
-    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+q60sF8lnl6UJ2V9VY1OQfL5DkG3L" 
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+q60sF8lnl6UJ2V9VY1OQfL5DkG3L"
     crossorigin="anonymous"
   ></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+
+
