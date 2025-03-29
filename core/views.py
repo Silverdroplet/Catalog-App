@@ -21,6 +21,14 @@ class CatalogView(ListView):
     template_name = "catalog.html"
     context_object_name = "items"
 
+    def get_queryset(self):
+        if self.request.user.is_authenticated and self.request.user.profile.is_librarian:
+            return Equipment.objects.all()
+
+        return Equipment.objects.filter(
+        Q(collections__visibility='public') | Q(collections__isnull=True)
+    ).distinct()
+
     def get_context_data(self, **kwargs):
         """Fetch all reviews and pass them to catalog.html"""
         context = super().get_context_data(**kwargs)
@@ -285,12 +293,36 @@ def approve_access(request, collection_id, user_id):
 
 def collection_catalog(request):
     query = request.GET.get('q', '')  
-    collections = Collection.objects.all()
+    collections = Collection.objects.filter(visibility='public')
+
+    if request.user.is_authenticated:
+        collections = Collection.objects.all()
 
     if query:
         collections = collections.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(items__name__icontains=query))
 
-    return render(request, 'collection_catalog.html', {'collections': collections, 'query': query})
+    if request.method == "POST" and "request_access" in request.POST:
+        collection_id = request.POST.get("collection_id")
+        collection = get_object_or_404(Collection, id=collection_id)
+        existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
+        if not existing_request:
+            CollectionAccessRequest.objects.create(user=request.user, collection=collection)
+            collection.access_requests.add(request.user) 
+            collection.save()
+            messages.success(request, "Your request has been submitted.")
+
+        return HttpResponseRedirect(reverse('core:collection_catalog'))  
+
+    access_requests = {
+        collection.id: CollectionAccessRequest.objects.filter(user=request.user, collection=collection).exists()
+        for collection in collections
+    }
+
+    return render(request, 'collection_catalog.html', {
+        'collections': collections,
+        'query': query,
+        'access_requests': access_requests 
+    })
 
 @login_required
 def delete_collection(request, collection_id):
