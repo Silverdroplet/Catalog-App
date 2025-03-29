@@ -12,14 +12,29 @@
     <ul>
         {% for collection in collections %}
             <li>
-                <h2>{{ collection.title }}</h2>
-
                 {% if collection.visibility == 'public' %}
+                    <h2>{{ collection.title }}</h2>
                     <p>{{ collection.description }}</p>
                     <p>Visibility: Public</p>
                     <a href="{% url 'core:view_collection' collection.id %}">View Collection</a>
                 {% else %}
-                    <p><em>(Private collection, details hidden)</em></p>
+                {% if user.is_authenticated %}
+                    <h2>{{ collection.title }}</h2>
+                    {% if user in collection.access_requests.all %}
+                        <p><em>(Private collection, details hidden)</em></p>
+                        <p>Your request to access this collection is pending approval.</p>
+                    {% elif user in collection.allowed_users.all %}
+                    <p><em>(Private collection, You have access)</em></p>
+                        <a href="{% url 'core:view_collection' collection.id %}">View Collection</a>
+                    {% else %}
+                        <p><em>(Private collection, details hidden)</em></p>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="collection_id" value="{{ collection.id }}">
+                            <button type="submit" name="request_access">Request Access</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
                 {% endif %}
             </li>
         {% empty %}
