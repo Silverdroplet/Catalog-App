@@ -320,11 +320,12 @@ def collection_catalog(request):
             messages.success(request, "Your request has been submitted.")
 
         return HttpResponseRedirect(reverse('core:collection_catalog'))  
-
-    access_requests = {
-        collection.id: CollectionAccessRequest.objects.filter(user=request.user, collection=collection).exists()
-        for collection in collections
-    }
+    access_requests = None
+    if request.user.is_authenticated:
+        access_requests = {
+            collection.id: CollectionAccessRequest.objects.filter(user=request.user, collection=collection).exists()
+            for collection in collections
+        }
 
     return render(request, 'collection_catalog.html', {
         'collections': collections,
