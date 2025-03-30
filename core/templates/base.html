@@ -1,4 +1,5 @@
 {% load socialaccount %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -97,6 +98,21 @@
       display: inline-block;    /* Keep the entire text together */
       margin: 0;                /* Remove default margins */
     }
+    .bg-image-home {
+      background-image: url('/static/core/images/rotunda.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      min-height: 100vh; /* Ensures full height */
+
+    }
+    .profile-pic {
+      width: 50px; /* Adjust as needed */
+      height: 50px; /* Ensure equal width & height */
+      object-fit: cover; /* Prevent distortion */
+      border-radius: 50%; /* Ensures a perfect circle */
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -106,6 +122,10 @@
   <!--Navbar-->
   <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="{% static 'core/images/UVA-logo.png' %}" width="200" alt="">
+      </a>
+      
         <a class="navbar-brand" href="{% url 'core:home' %}">Home</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -125,30 +145,27 @@
                       <a class="nav-link" href="{% url 'core:patron' %}">Dashboard</a>
                     </li>
                   {% endif %}
-                  <div class="logout-container">
-                    <li class="nav-item">
-                      <form action="{% url 'core:logout' %}" method="post" class="form-inline my-2 my-lg-0">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-success">Logout</button>
-                      </form>
-                    </li>
-                  </div>
-                  
-                {% else %}
-                  <div class="logout-container">
-                    <li class="nav-item">
-                      <a class="btn btn-outline-success" href="{% provider_login_url 'google' %}">Login</a>
-                    </li>
-                  </div>
-                {% endif %}
             </ul>
-            <div class = "logout-container">
-              {% if user.is_authenticated %}
-
-
-              TESTING
-            </div>
-
+            
+            <uv class="navbar-nav ml-auto">
+               {% if user.profile.profile_picture %} 
+                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic mr-3" width="30">
+               {% endif %}
+              <div class="logout-container">
+                <li class="nav-item">
+                  <form action="{% url 'core:logout' %}" method="post" class="form-inline my-2 my-lg-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-success">Logout</button>
+                  </form>
+                </li>
+                
+              {% else %}
+                  <li class="nav-item">
+                    <a class="btn btn-outline-success" href="{% provider_login_url 'google' %}">Login</a>
+                  </li>
+                </div>
+              {% endif %}
+            </uv>
 
         </div>
     </div>

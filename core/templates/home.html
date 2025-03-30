@@ -1,18 +1,10 @@
 {% extends "base.html" %}
 {% load socialaccount %}
 
-{% block extra_head}
-  <style>
-    .body {
-      background-color: blueviolet !important;
-    }
-  </style>
-{% endblock}
-
 {% block title %}Home - Sports Gear Lending @ UVA{% endblock %}
 
 {% block content %}
-  <div class="text-center mt-5">
+    <div class="text-center mt-5">
     <h1 class="mb-4">Welcome to Sports Gear Lending @ UVA</h1>
     <p class="lead">Borrow and share sports equipment easily!</p>
     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
@@ -27,4 +19,7 @@
       {% endif %}
     </div>
   </div>
+  
+
+
 {% endblock %}
