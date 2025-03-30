@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Profile, Equipment, EquipmentImage, Review, Collection, User
 from django.contrib import messages
+from django.db.models import Q
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
@@ -41,24 +42,31 @@ class CollectionForm(forms.ModelForm):
         required=False
     )
 
-    print(User.objects.filter(profile__is_librarian=False))
-
     class Meta:
         model = Collection
         fields = ['title', 'description', 'visibility', 'items', 'allowed_users']
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
-        user = kwargs.pop('user', None)  
+        user = kwargs.pop('user', None)
+        instance = kwargs.get('instance')  
         super().__init__(*args, **kwargs)
+
         self.fields['allowed_users'].queryset = User.objects.filter(profile__is_librarian=False)
+
         if not user.profile.is_librarian:
             self.fields.pop('visibility')
 
         private_collections = Collection.objects.filter(visibility='private')
+
         private_items = Equipment.objects.filter(collections__in=private_collections).distinct()
 
-        self.fields['items'].queryset = Equipment.objects.exclude(id__in=private_items)
+        if instance:
+            self.fields['items'].queryset = Equipment.objects.filter(
+                Q(id__in=instance.items.values_list('id', flat=True)) | ~Q(id__in=private_items)
+            )
+        else:
+            self.fields['items'].queryset = Equipment.objects.exclude(id__in=private_items)
 
     
     def save(self, commit=True):

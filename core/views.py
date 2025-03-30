@@ -248,16 +248,21 @@ def my_collections(request):
 
 @login_required
 def edit_collection(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, creator=request.user)
+    collection = get_object_or_404(
+        Collection.objects.filter(
+            Q(id=collection_id) & (Q(creator=request.user) | Q(allowed_users=request.user))
+        ).distinct()
+    )
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection, user=request.user)
         if form.is_valid():
             form.save()
+            librarian_users = User.objects.filter(profile__is_librarian=True)
+            collection.allowed_users.add(*librarian_users)
             return redirect('core:my_collections')
     else:
         form = CollectionForm(instance=collection, user=request.user)
-
     return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
 
 def view_collection(request, collection_id):

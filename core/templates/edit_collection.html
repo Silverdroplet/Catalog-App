@@ -33,7 +33,8 @@
     <legend>Select Users Allowed to Access (Librarians Already Have Access):</legend>
     {% for user in form.allowed_users.field.queryset %}
         <label>
-            <input type="checkbox" name="allowed_users" value="{{ user.id }}">
+            <input type="checkbox" name="allowed_users" value="{{ user.id }}" 
+            {% if user in form.instance.allowed_users.all %}checked{% endif %}>
             {{ user.username }} ({{ user.email }})
         </label><br>
     {% endfor %}

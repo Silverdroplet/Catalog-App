@@ -19,7 +19,7 @@
         <br>
       </li>
     {% empty %}
-      <p>No items in this collection. Add one!</p>
+      <p>No items in this collection.</p>
     {% endfor %}
     {% if user.profile.is_librarian or collection.creator == request.user %}
     <a href="{% url 'core:edit_collection' collection.id %}">Edit This Collection</a>
