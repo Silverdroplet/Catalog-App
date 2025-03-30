@@ -23,15 +23,24 @@ class CatalogView(ListView):
 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.profile.is_librarian:
-            return Equipment.objects.all()
+            base_queryset = Equipment.objects.all()
+        else:
+            base_queryset = Equipment.objects.filter(
+                Q(collections__visibility='public') | Q(collections__isnull=True)
+            ).distinct()
 
-        return Equipment.objects.filter(
-        Q(collections__visibility='public') | Q(collections__isnull=True)
-    ).distinct()
+        # Then: apply your gym location filter
+        selected_gym = self.request.GET.get("location")
+        if selected_gym:
+            base_queryset = base_queryset.filter(location=selected_gym)
+
+        return base_queryset
 
     def get_context_data(self, **kwargs):
         """Fetch all reviews and pass them to catalog.html"""
         context = super().get_context_data(**kwargs)
+        context["gyms"] = Equipment.objects.values_list("location", flat=True).distinct()
+        context["selected_gym"] = self.request.GET.get("location", "")
         context["reviews"] = Review.objects.select_related("equipment", "user").all()
         context["review_form"] = ReviewForm() 
         return context
