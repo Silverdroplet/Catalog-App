@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% load socialaccount %}
 
+{% block extra_head}
+  <style>
+    .body {
+      background-color: blueviolet !important;
+    }
+  </style>
+{% endblock}
+
 {% block title %}Home - Sports Gear Lending @ UVA{% endblock %}
 
 {% block content %}
@@ -8,8 +16,15 @@
     <h1 class="mb-4">Welcome to Sports Gear Lending @ UVA</h1>
     <p class="lead">Borrow and share sports equipment easily!</p>
     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-      <a class="btn btn-warning btn-lg" href="{% url 'core:catalog' %}">View Catalog</a>
-      <a class="btn btn-primary btn-lg" href="{% provider_login_url 'google' %}">Login</a>
+      <a class="btn btn-primary btn-lg mx-3" href="{% url 'core:catalog' %}">View Catalog</a>
+      {% if user.is_authenticated %}
+        <form action="{% url 'core:logout' %}" method="post" class="form-inline my-2 my-lg-0">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-lg mx-3">Logout</button>
+        </form>
+      {% else %}
+        <a class="btn btn-primary btn-lg mx-3" href="{% provider_login_url 'google' %}">Login</a>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

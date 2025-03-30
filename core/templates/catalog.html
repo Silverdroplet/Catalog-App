@@ -5,7 +5,11 @@
 {% block content %}
 <h1 class="mb-4">Equipment Catalog</h1>
 
-<a href="{% url 'core:collection_catalog' %}">View Collection Catalog</a>
+{% if not items %}
+<p>No equipment to display</p>
+{% endif %}
+
+<a class="btn btn-primary btn-lg mx-3" href="{% url 'core:collection_catalog' %}">View Collection Catalog</a>
 <br>
 {% if user.is_authenticated and user.profile.is_librarian %}
   <a href="{% url 'core:add_equipment' %}" class="btn btn-success mb-3">
@@ -116,5 +120,5 @@
   {% endfor %}
 </ul>
 
-<a href="{% url 'core:home' %}" class="btn btn-link">Back to Home</a>
+<a href="{% url 'core:home' %}" class="btn btn-primary btn-lg mx-3">Back to Home</a>
 {% endblock %}
