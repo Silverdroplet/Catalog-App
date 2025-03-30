@@ -2,10 +2,31 @@
 
 {% block title %}Add A Collection!{% endblock %}
 
-{%block content %}
+{% block content %}
+<h2>Add a New Collection</h2>
+
 <form method="post">
   {% csrf_token %}
-  {{ form.as_p }}
+
+  <p><label for="{{ form.title.id_for_label }}">Title:</label> {{ form.title }}</p>
+  <p><label for="{{ form.description.id_for_label }}">Description:</label> {{ form.description }}</p>
+  
+  {% if form.visibility %}
+      <p><label for="{{ form.visibility.id_for_label }}">Visibility:</label> {{ form.visibility }}</p>
+  {% endif %}
+  
+  <fieldset>
+    <legend>Select Items to Add:</legend>
+    {% for item in form.items.field.queryset %}
+        <label>
+            <input type="checkbox" name="items" value="{{ item.id }}">
+            <strong>{{ item.name }}</strong> ({{ item.status }})
+            <small>ID: {{ item.identifier }}, </small>
+            <small>Description: {{ item.description }}, </small>
+            <small>Location: {{ item.location }}</small>
+        </label><br>
+    {% endfor %}
+  </fieldset>
 
   <button type="submit">Create Collection</button>
 </form>
