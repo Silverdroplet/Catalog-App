@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Profile, Equipment, EquipmentImage, Review, Collection
+from .models import Profile, Equipment, EquipmentImage, Review, Collection, User
 from django.contrib import messages
 
 class CustomLoginForm(AuthenticationForm):
@@ -35,14 +35,23 @@ class CollectionForm(forms.ModelForm):
         required=False
     )
 
+    allowed_users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.filter(profile__is_librarian=False),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
+    print(User.objects.filter(profile__is_librarian=False))
+
     class Meta:
         model = Collection
-        fields = ['title', 'description', 'visibility', 'items']
+        fields = ['title', 'description', 'visibility', 'items', 'allowed_users']
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         user = kwargs.pop('user', None)  
         super().__init__(*args, **kwargs)
+        self.fields['allowed_users'].queryset = User.objects.filter(profile__is_librarian=False)
         if not user.profile.is_librarian:
             self.fields.pop('visibility')
 
@@ -50,9 +59,11 @@ class CollectionForm(forms.ModelForm):
         private_items = Equipment.objects.filter(collections__in=private_collections).distinct()
 
         self.fields['items'].queryset = Equipment.objects.exclude(id__in=private_items)
+
     
     def save(self, commit=True):
-        instance = super().save(commit=False) 
+        instance = super().save(commit=False)
+
         if instance.visibility == 'private':
             for item in self.cleaned_data['items']:
                 public_collections = item.collections.filter(visibility='public')
@@ -60,15 +71,16 @@ class CollectionForm(forms.ModelForm):
                     for public_collection in public_collections:
                         public_collection.items.remove(item)
                         public_collection.save()
-                        #item.collections.remove(public_collection)
-                        #item.save()
+
                         log_entry = f"Item '{item.name}' removed from Collection: '{public_collection.title}'. It was moved to a private collection by an administrator."
                         if public_collection.modification_logs:
                             public_collection.modification_logs += f"\n{log_entry}"
                         else:
                             public_collection.modification_logs = log_entry
                         public_collection.save()
+
         if commit:
             instance.save()
             self.save_m2m()
+        
         return instance
