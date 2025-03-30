@@ -309,7 +309,7 @@ def collection_catalog(request):
     if query:
         collections = collections.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(items__name__icontains=query))
 
-    if request.method == "POST" and "request_access" in request.POST:
+    if request.user.is_authenticated and request.method == "POST" and "request_access" in request.POST:
         collection_id = request.POST.get("collection_id")
         collection = get_object_or_404(Collection, id=collection_id)
         existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
