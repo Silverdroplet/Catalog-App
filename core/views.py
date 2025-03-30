@@ -266,13 +266,17 @@ def edit_collection(request, collection_id):
     return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
 
 def view_collection(request, collection_id):
+    query = request.GET.get('q', '')  
     collection = get_object_or_404(Collection, id=collection_id)
+    items = collection.items.all()  
+    if query:
+        items = items.filter(Q(name__icontains=query))
 
     if collection.visibility == 'public' or request.user.profile.is_librarian:
-        return render(request, 'collection.html', {'collection': collection})
+        return render(request, 'collection.html', {'collection': collection, 'query': query, 'items': items})
 
     if request.user in collection.access_requests.all():
-        return render(request, 'collection.html', {'collection': collection})
+        return render(request, 'collection.html', {'collection': collection, 'query': query, 'items': items})
 
     if request.method == "POST" and "request_access" in request.POST:
         existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
@@ -286,7 +290,7 @@ def view_collection(request, collection_id):
 
     access_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
     
-    return render(request, 'collection.html', {'collection': collection, 'access_request': access_request})
+    return render(request, 'collection.html', {'collection': collection, 'access_request': access_request, 'query': query, 'items': items})
 
 @login_required
 def approve_access(request, collection_id, user_id):

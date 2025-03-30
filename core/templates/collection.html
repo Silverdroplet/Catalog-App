@@ -4,8 +4,32 @@
   {% if collection.visibility == 'public' or user.profile.is_librarian or user in collection.allowed_users.all %}
     <h1>{{ collection.title }}</h1>
     <p>{{ collection.description }}</p>
+    <p>Collection Creator: {{ collection.creator}}</p>
     <p>Visibility: {{ collection.get_visibility_display }}</p>
 
+    <form method="GET" action="{% url 'core:view_collection' collection.id %}">
+        <input type="text" name="q" placeholder="Search items..." value="{{ query }}">
+        <button type="submit">Search</button>
+    </form>
+
+    
+    {% if query %}
+    {% for item in items %}
+    <h3>Filtered Items in Collection:</h3>
+    <li>
+        <strong>{{ item.name }}</strong> ({{ item.status }})
+        <br>
+        <small>ID: {{ item.identifier }}</small>
+        <br>
+        <small>Description: {{ item.description }}</small>
+        <br>
+        <small>Location: {{ item.location }}</small>
+        <br>
+      </li>
+      {% empty %}
+      <p>No items in this collection.</p>
+    {% endfor %}
+    {% else %}
     <h3>Items in Collection:</h3>
     {% for item in collection.items.all %}
       <li>
@@ -21,6 +45,7 @@
     {% empty %}
       <p>No items in this collection.</p>
     {% endfor %}
+    {% endif %}
     {% if user.profile.is_librarian or collection.creator == request.user %}
     <a href="{% url 'core:edit_collection' collection.id %}">Edit This Collection</a>
     {% endif %}
