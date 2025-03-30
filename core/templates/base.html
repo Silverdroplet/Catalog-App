@@ -123,7 +123,7 @@
   <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
-        <img src="{% static 'core/images/UVA-logo.png' %}" width="200" alt="">
+        <img src="{% static 'core/images/UVA-logo.png' %}" width="240" alt="">
       </a>
       
         <a class="navbar-brand" href="{% url 'core:home' %}">Home</a>
@@ -145,27 +145,29 @@
                       <a class="nav-link" href="{% url 'core:patron' %}">Dashboard</a>
                     </li>
                   {% endif %}
+                {% endif %}
             </ul>
             
-            <uv class="navbar-nav ml-auto">
-               {% if user.profile.profile_picture %} 
-                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic mr-3" width="30">
-               {% endif %}
-              <div class="logout-container">
-                <li class="nav-item">
-                  <form action="{% url 'core:logout' %}" method="post" class="form-inline my-2 my-lg-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-success">Logout</button>
-                  </form>
-                </li>
-                
-              {% else %}
+            <ul class="navbar-nav ml-auto">
+
+            {% if user.is_authenticated %}
+                {% if user.profile.profile_picture %} 
+                 <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic mr-3" width="30">
+                {% endif %}
+                 <li class="nav-item">
+                   <form action="{% url 'core:logout' %}" method="post" class="form-inline my-2 my-lg-0">
+                     {% csrf_token %}
+                     <button type="submit" class="btn btn-outline-success">Logout</button>
+                   </form>
+                 </li>
+                 
+            {% else %}
                   <li class="nav-item">
                     <a class="btn btn-outline-success" href="{% provider_login_url 'google' %}">Login</a>
                   </li>
-                </div>
-              {% endif %}
-            </uv>
+            {% endif %}
+            </ul>
+
 
         </div>
     </div>
