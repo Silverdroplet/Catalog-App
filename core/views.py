@@ -23,15 +23,24 @@ class CatalogView(ListView):
 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.profile.is_librarian:
-            return Equipment.objects.all()
+            base_queryset = Equipment.objects.all()
+        else:
+            base_queryset = Equipment.objects.filter(
+                Q(collections__visibility='public') | Q(collections__isnull=True)
+            ).distinct()
 
-        return Equipment.objects.filter(
-        Q(collections__visibility='public') | Q(collections__isnull=True)
-    ).distinct()
+        # Then: apply your gym location filter
+        selected_gym = self.request.GET.get("location")
+        if selected_gym:
+            base_queryset = base_queryset.filter(location=selected_gym)
+
+        return base_queryset
 
     def get_context_data(self, **kwargs):
         """Fetch all reviews and pass them to catalog.html"""
         context = super().get_context_data(**kwargs)
+        context["gyms"] = Equipment.objects.values_list("location", flat=True).distinct()
+        context["selected_gym"] = self.request.GET.get("location", "")
         context["reviews"] = Review.objects.select_related("equipment", "user").all()
         context["review_form"] = ReviewForm() 
         return context
@@ -195,10 +204,11 @@ def add_collection(request):
                 collection.visibility = 'public'  
             collection.save()
             form.save_m2m() 
+            librarian_users = User.objects.filter(profile__is_librarian=True)
+            collection.allowed_users.add(*librarian_users)
             return redirect('core:view_collection', collection_id=collection.id)
     else:
         form = CollectionForm(user=request.user)
-    
     return render(request, 'add_collections.html', {'form': form})
 
 @login_required
@@ -239,26 +249,35 @@ def my_collections(request):
 
 @login_required
 def edit_collection(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, creator=request.user)
+    collection = get_object_or_404(
+        Collection.objects.filter(
+            Q(id=collection_id) & (Q(creator=request.user) | Q(allowed_users=request.user))
+        ).distinct()
+    )
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection, user=request.user)
         if form.is_valid():
             form.save()
+            librarian_users = User.objects.filter(profile__is_librarian=True)
+            collection.allowed_users.add(*librarian_users)
             return redirect('core:my_collections')
     else:
         form = CollectionForm(instance=collection, user=request.user)
-
     return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
 
 def view_collection(request, collection_id):
+    query = request.GET.get('q', '')  
     collection = get_object_or_404(Collection, id=collection_id)
+    items = collection.items.all()  
+    if query:
+        items = items.filter(Q(name__icontains=query))
 
     if collection.visibility == 'public' or request.user.profile.is_librarian:
-        return render(request, 'collection.html', {'collection': collection})
+        return render(request, 'collection.html', {'collection': collection, 'query': query, 'items': items})
 
     if request.user in collection.access_requests.all():
-        return render(request, 'collection.html', {'collection': collection})
+        return render(request, 'collection.html', {'collection': collection, 'query': query, 'items': items})
 
     if request.method == "POST" and "request_access" in request.POST:
         existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
@@ -272,7 +291,7 @@ def view_collection(request, collection_id):
 
     access_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
     
-    return render(request, 'collection.html', {'collection': collection, 'access_request': access_request})
+    return render(request, 'collection.html', {'collection': collection, 'access_request': access_request, 'query': query, 'items': items})
 
 @login_required
 def approve_access(request, collection_id, user_id):
@@ -301,7 +320,7 @@ def collection_catalog(request):
     if query:
         collections = collections.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(items__name__icontains=query))
 
-    if request.method == "POST" and "request_access" in request.POST:
+    if request.user.is_authenticated and request.method == "POST" and "request_access" in request.POST:
         collection_id = request.POST.get("collection_id")
         collection = get_object_or_404(Collection, id=collection_id)
         existing_request = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
@@ -312,11 +331,12 @@ def collection_catalog(request):
             messages.success(request, "Your request has been submitted.")
 
         return HttpResponseRedirect(reverse('core:collection_catalog'))  
-
-    access_requests = {
-        collection.id: CollectionAccessRequest.objects.filter(user=request.user, collection=collection).exists()
-        for collection in collections
-    }
+    access_requests = None
+    if request.user.is_authenticated:
+        access_requests = {
+            collection.id: CollectionAccessRequest.objects.filter(user=request.user, collection=collection).exists()
+            for collection in collections
+        }
 
     return render(request, 'collection_catalog.html', {
         'collections': collections,

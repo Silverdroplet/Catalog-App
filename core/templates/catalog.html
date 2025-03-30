@@ -17,6 +17,18 @@
   </a>
 {% endif %}
 
+<form method="get" class="mb-4">
+  <label for="location" class="form-label"><strong>Filter by Gym Location:</strong></label>
+  <select name="location" id="location" class="form-select" onchange="this.form.submit()">
+    <option value="">All Locations</option>
+    {% for loc in gyms %}
+      {% if loc %}
+        <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>{{ loc }}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
+</form>
+
 <ul class="list-unstyled">
   {% for item in items %}
     <li class="mb-5 border-bottom pb-3">
