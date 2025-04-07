@@ -2,7 +2,7 @@
 <p><strong>Identifier:</strong> {{ item.identifier }}</p>
 <p>{{ item.description|default:"No description available." }}</p>
 <p><strong>Location:</strong> {{ item.location }}</p>
-<p><strong>Sport:</strong> {{ item.sport|default:"N/A" }}</p>
+<p><strong>Sport:</strong> {{ item.sports_type|default:"N/A" }}</p>
 <p><strong>Status:</strong> {{ item.get_status_display }}</p>
 <p><strong>Available:</strong> {{ item.is_available|yesno:"✅ Yes,❌ No" }}</p>
 

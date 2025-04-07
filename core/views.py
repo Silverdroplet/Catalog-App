@@ -33,10 +33,10 @@ class CatalogView(ListView):
         selected_gym = self.request.GET.get("location")
         if selected_gym:
             base_queryset = base_queryset.filter(location=selected_gym)
-        """
+        
         selected_sport = self.request.GET.get("sport")
         if selected_sport:
-            base_queryset = base_queryset.filter(sport=selected_sport)"""
+            base_queryset = base_queryset.filter(sports_type=selected_sport)
 
         search_query = self.request.GET.get("q")
         if search_query:
@@ -49,6 +49,8 @@ class CatalogView(ListView):
         context = super().get_context_data(**kwargs)
         context["gyms"] = Equipment.objects.values_list("location", flat=True).distinct()
         context["selected_gym"] = self.request.GET.get("location", "")
+        context["sports"] = Equipment.objects.values_list("sports_type", flat=True).distinct()
+        context["selected_sport"] = self.request.GET.get("sport", "")
         context["reviews"] = Review.objects.select_related("equipment", "user").all()
         context["review_form"] = ReviewForm() 
         return context

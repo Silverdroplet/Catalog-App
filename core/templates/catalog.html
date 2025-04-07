@@ -19,14 +19,12 @@
           {% endfor %}
         </select>
 
-        <!-- (sport dropdown)
         <select name="sport" class="form-select" onchange="this.form.submit()">
           <option value="">All Sports</option>
           {% for sport in sports %}
             <option value="{{ sport }}" {% if request.GET.sport == sport %}selected{% endif %}>{{ sport }}</option>
           {% endfor %}
         </select>
-        -->
 
         <button type="submit" class="btn btn-primary">Filter</button>
       </form>
