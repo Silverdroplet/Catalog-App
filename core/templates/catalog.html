@@ -1,136 +1,81 @@
 {% extends "base.html" %}
-
 {% block title %}Equipment Catalog{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Equipment Catalog</h1>
+<div class="container-fluid">
+  <div class="row">
 
-{% if not items %}
-<p>No equipment to display</p>
-{% endif %}
+    <!-- Left: Filters and Item Grid -->
+    <div class="col-md-9 pe-4">
 
-<a class="btn btn-primary btn-lg mx-3" href="{% url 'core:collection_catalog' %}">View Collection Catalog</a>
-<br>
-{% if user.is_authenticated and user.profile.is_librarian %}
-  <a href="{% url 'core:add_equipment' %}" class="btn btn-success mb-3">
-    Add New Equipment
-  </a>
-{% endif %}
+      <!-- Top Filter/Search Bar -->
+      <form method="get" class="mb-4 d-flex gap-3">
+        <input type="text" name="q" class="form-control" placeholder="Search by name..." value="{{ request.GET.q }}">
 
-<form method="get" class="mb-4">
-  <label for="location" class="form-label"><strong>Filter by Gym Location:</strong></label>
-  <select name="location" id="location" class="form-select" onchange="this.form.submit()">
-    <option value="">All Locations</option>
-    {% for loc in gyms %}
-      {% if loc %}
-        <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>{{ loc }}</option>
-      {% endif %}
-    {% endfor %}
-  </select>
-</form>
+        <select name="location" class="form-select" onchange="this.form.submit()">
+          <option value="">All Gyms</option>
+          {% for loc in gyms %}
+            <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>{{ loc }}</option>
+          {% endfor %}
+        </select>
 
-<ul class="list-unstyled">
-  {% for item in items %}
-    <li class="mb-5 border-bottom pb-3">
-      <h4>{{ item.name }}</h4>
-      
-      <!-- Images -->
-      <div class="mb-2">
-        {% for image_obj in item.images.all %}
-          <img 
-            src="{{ image_obj.image.url }}" 
-            alt="{{ item.name }}" 
-            width="150" 
-            class="img-thumbnail me-2 mb-2"
-          >
-          {% if image_obj.caption %}
-            <p>{{ image_obj.caption }}</p>
-          {% endif %}
-        {% empty %}
-          <em>No images available</em>
+        <!-- (sport dropdown)
+        <select name="sport" class="form-select" onchange="this.form.submit()">
+          <option value="">All Sports</option>
+          {% for sport in sports %}
+            <option value="{{ sport }}" {% if request.GET.sport == sport %}selected{% endif %}>{{ sport }}</option>
+          {% endfor %}
+        </select>
+        -->
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </form>
+
+      <!-- Grid of Items -->
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for item in items %}
+        <div class="col">
+          <div class="card h-100">
+            {% if item.images.first %}
+              <img src="{{ item.images.first.image.url }}" class="card-img-top" alt="{{ item.name }}">
+            {% else %}
+              <div class="card-img-top bg-secondary text-white text-center p-5">No Image</div>
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ item.name }}</h5>
+              <button class="btn btn-outline-primary" onclick="loadSidebar({{ item.id }})">More Details</button>
+            </div>
+          </div>
+        </div>
         {% endfor %}
       </div>
+    </div>
 
-      <!-- Equipment Details -->
-      <p><strong>Identifier:</strong> {{ item.identifier }}</p>
-      <p><strong>Description:</strong> {{ item.description }}</p>
-      <p><strong>Location:</strong> {{ item.location }}</p>
+    <!-- Right: Sidebar -->
+    <div class="col-md-3 ps-4 border-start" id="sidebar" style="min-height: 100vh;">
+      <h4>Details</h4>
+      <div id="sidebar-content">
+        <p>Select an item to view details.</p>
+      </div>
+    </div>
 
-      <!-- Status with Emojis -->
-      <p>
-        <strong>Status:</strong>
-        {% if item.status == "checked-in" %}
-          <span class="text-success">✅ Checked In</span>
-        {% elif item.status == "in-circulation" %}
-          <span class="text-warning">🔄 In Circulation</span>
-        {% elif item.status == "being-repaired" %}
-          <span class="text-danger">🔧 Being Repaired</span>
-        {% else %}
-          {{ item.status }}
-        {% endif %}
-      </p>
+  </div>
+</div>
 
-      <!-- Availability with Emojis -->
-      <p>
-        <strong>Availability:</strong>
-        {% if item.is_available %}
-          <span class="text-success">✅ Available</span>
-        {% else %}
-          <span class="text-danger">❌ Loaned Out</span>
-        {% endif %}
-      </p>
+<!-- JS to Load Sidebar Content -->
+<script>
+function loadSidebar(itemId) {
+  fetch(`/equipment/details/${itemId}/`)
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById("sidebar-content").innerHTML = html;
+    });
+}
+</script>
 
-      <!-- Librarian Actions -->
-      {% if user.is_authenticated and user.profile.is_librarian %}
-        <a href="{% url 'core:edit_equipment' item.id %}" class="btn btn-info me-2">
-          Edit
-        </a>
-        <a href="{% url 'core:delete_equipment' item.id %}" class="btn btn-danger">
-          Delete
-        </a>
-      {% endif %}
-    </li>
+<!-- Back to Home -->
+<div class="mt-4">
+  <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg">Back to Home</a>
+</div>
 
-      <!-- Reviews Section -->
-      <h5>Reviews</h5>
-      {% with item_reviews=reviews|dictsort:"-created_at" %}
-        {% for review in reviews %}
-          {% if review.equipment == item %}
-            <p><strong>{{ review.user.username }}</strong> rated it {{ review.rating }}/5</p>
-            <p>{{ review.comment }}</p>
-            <hr>
-          {% endif %}
-        {% empty %}
-          <p>No reviews yet. Be the first to review this item!</p>
-        {% endfor %}
-      {% endwith %}
-
-      <!-- Submit a Review -->
-      {% if user.is_authenticated %}
-        <form method="POST" action="{% url 'core:submit_review' item.id %}">
-          {% csrf_token %}
-          
-          <!-- Rating Selection -->
-          <label for="rating"><strong>Rating (1-5):</strong></label>
-          <select name="rating" class="form-select" required>
-            <option value="1">1 - Poor</option>
-            <option value="2">2 - Fair</option>
-            <option value="3">3 - Good</option>
-            <option value="4">4 - Very Good</option>
-            <option value="5">5 - Excellent</option>
-          </select>
-
-          <!-- Review Comment -->
-          <label for="comment"><strong>Comment:</strong></label>
-          <textarea name="comment" class="form-control" rows="3"></textarea>
-
-          <button type="submit" class="btn btn-primary mt-2">Submit Review</button>
-        </form>
-      {% else %}
-        <p><a href="{% url 'core:login' %}">Log in</a> to leave a review.</p>
-      {% endif %}
-  {% endfor %}
-</ul>
-
-<a href="{% url 'core:home' %}" class="btn btn-primary btn-lg mx-3">Back to Home</a>
 {% endblock %}
