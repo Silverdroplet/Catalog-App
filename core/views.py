@@ -4,8 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView, ListView
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from django.contrib import messages
+from django.template.loader import render_to_string
 from .models import Equipment, Profile, Review, Collection, User
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
@@ -29,10 +30,17 @@ class CatalogView(ListView):
                 Q(collections__visibility='public') | Q(collections__isnull=True)
             ).distinct()
 
-        # Then: apply your gym location filter
         selected_gym = self.request.GET.get("location")
         if selected_gym:
             base_queryset = base_queryset.filter(location=selected_gym)
+        
+        selected_sport = self.request.GET.get("sport")
+        if selected_sport:
+            base_queryset = base_queryset.filter(sports_type=selected_sport)
+
+        search_query = self.request.GET.get("q")
+        if search_query:
+            base_queryset = base_queryset.filter(name__icontains=search_query)
 
         return base_queryset
 
@@ -41,6 +49,8 @@ class CatalogView(ListView):
         context = super().get_context_data(**kwargs)
         context["gyms"] = Equipment.objects.values_list("location", flat=True).distinct()
         context["selected_gym"] = self.request.GET.get("location", "")
+        context["sports"] = Equipment.objects.values_list("sports_type", flat=True).distinct()
+        context["selected_sport"] = self.request.GET.get("sport", "")
         context["reviews"] = Review.objects.select_related("equipment", "user").all()
         context["review_form"] = ReviewForm() 
         return context
@@ -355,3 +365,12 @@ def delete_collection(request, collection_id):
         messages.error(request, "You do not have permission to delete this collection.")
 
     return redirect('core:my_collections')  
+
+def equipment_details_sidebar(request, item_id):
+    item = get_object_or_404(Equipment, id=item_id)
+    reviews = Review.objects.filter(equipment=item)
+    html = render_to_string("partials/equipment_sidebar.html", {
+        "item": item,
+        "reviews": reviews
+    }, request=request)
+    return HttpResponse(html)

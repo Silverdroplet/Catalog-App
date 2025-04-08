@@ -57,6 +57,7 @@ class Equipment(models.Model):
     is_available = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='checked-in')
     location = models.CharField(max_length=255, blank=True)
+    sports_type = models.CharField(max_length=100, blank=True)
     added_date = models.DateTimeField(auto_now_add=True)
     sports_type = models.CharField(max_length=100, null=True, blank=True)
     #current_user = models.ForeignKey(User, on_delete=models.SET_NULL, null = True, blank = True, related_name="borrowed_equipment")
