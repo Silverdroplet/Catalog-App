@@ -369,7 +369,7 @@ def delete_collection(request, collection_id):
 def equipment_details_sidebar(request, item_id):
     item = get_object_or_404(Equipment, id=item_id)
     reviews = Review.objects.filter(equipment=item)
-    html = render_to_string("partials/equipment_sidebar.html", {
+    html = render_to_string("equipment_sidebar.html", {
         "item": item,
         "reviews": reviews
     }, request=request)
