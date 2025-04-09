@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView, ListView
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.template.loader import render_to_string
 from .models import Equipment, Profile, Review, Collection, User
@@ -324,6 +324,11 @@ def approve_access(request, collection_id, user_id):
 def collection_catalog(request):
     query = request.GET.get('q', '')  
     collections = Collection.objects.filter(visibility='public')
+    for collection in collections:
+        images = []
+        for item in collection.items.all():
+            images.extend(item.images.all())  
+        collection.image_list = images
 
     if request.user.is_authenticated:
         collections = Collection.objects.all()
@@ -374,3 +379,16 @@ def equipment_details_sidebar(request, item_id):
         "reviews": reviews
     }, request=request)
     return HttpResponse(html)
+
+@login_required
+def search_users(request):
+    if not request.user.profile.is_librarian or not request.user.is_authenticated:
+        return HttpResponseForbidden("You do not have permission to access this.")
+    query = request.GET.get("q", "")
+    if len(query) < 3:
+        return JsonResponse([], safe=False)
+    results = User.objects.filter(username__icontains=query)[:20]
+    return JsonResponse([
+        {"id": u.id, "username": u.username, "email": u.email}
+        for u in results
+    ], safe=False)

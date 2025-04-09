@@ -29,17 +29,20 @@
     {% endfor %}
   </fieldset>
   {% if user.profile.is_librarian %}
-  <fieldset id="allowed-users-fieldset" style="display: none;">
+    <fieldset id="allowed-users-fieldset" style="display: none;">
     <legend>Select Users Allowed to Access (Librarians Already Have Access):</legend>
-    {% for user in form.allowed_users.field.queryset %}
-        <label>
-            <input type="checkbox" name="allowed_users" value="{{ user.id }}" 
-            {% if user in form.instance.allowed_users.all %}checked{% endif %}>
-            {{ user.username }} ({{ user.email }})
-        </label><br>
-    {% endfor %}
-  </fieldset>
-  {% endif %}
+    <input type="text" id="user-search" placeholder="Search users..." style="margin-bottom: 10px;">
+    <div id="allowed-users-list">
+        {% for user in form.allowed_users.field.queryset %}
+            <label class="user-entry">
+                <input type="checkbox" name="allowed_users" value="{{ user.id }}"
+                {% if user in form.instance.allowed_users.all %}checked{% endif %}>
+                {{ user.username }} ({{ user.email }})<br>
+            </label>
+        {% endfor %}
+    </div>
+    </fieldset>
+   {% endif %}
 
   <button type="submit">Edit Collection</button>
 </form>
@@ -47,21 +50,56 @@
 <a href="{% url 'core:my_collections' %}">Back to My Collections</a>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-      var visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
-      var allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
+    document.addEventListener("DOMContentLoaded", function () {
+    var visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
+    var allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
+    var allowedUsersList = document.getElementById("allowed-users-list");
+    var userSearchInput = document.getElementById("user-search");
 
-      function toggleAllowedUsers() {
-          if (visibilityField.value === "private") {
-              allowedUsersFieldset.style.display = "block";
-          } else {
-              allowedUsersFieldset.style.display = "none";
-          }
-      }
+    // Hide all unchecked users from the initial list (clean DOM)
+    document.querySelectorAll("#allowed-users-list .user-entry").forEach(function (label) {
+        var checkbox = label.querySelector('input[type="checkbox"]');
+        if (!checkbox.checked) {
+            label.remove();
+        }
+    });
 
-      toggleAllowedUsers();
+    function toggleAllowedUsers() {
+        allowedUsersFieldset.style.display = visibilityField.value === "private" ? "block" : "none";
+    }
 
-      visibilityField.addEventListener("change", toggleAllowedUsers);
-  });
+    toggleAllowedUsers();
+    visibilityField.addEventListener("change", toggleAllowedUsers);
+
+    userSearchInput.addEventListener("input", function () {
+        const searchTerm = this.value.toLowerCase();
+        if (searchTerm.length < 3) return;
+
+        // Track already-checked users
+        const existingSelections = new Set(
+            Array.from(document.querySelectorAll('input[name="allowed_users"]:checked')).map(cb => cb.value)
+        );
+
+        fetch(`/librarians/api/search-users/?q=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.json())
+            .then(users => {
+                allowedUsersList.innerHTML = "";
+
+                users.forEach(user => {
+                    const label = document.createElement("label");
+                    label.className = "user-entry";
+                    label.innerHTML = `
+                        <input type="checkbox" name="allowed_users" value="${user.id}" 
+                        ${existingSelections.has(String(user.id)) ? "checked" : ""}>
+                        ${user.username} (${user.email})
+                    `;
+                    allowedUsersList.appendChild(label);
+                });
+            });
+    });
+});
+
 </script>
+    
+  
 {% endblock %}

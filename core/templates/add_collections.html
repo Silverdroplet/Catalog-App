@@ -28,36 +28,57 @@
     {% endfor %}
   </fieldset>
   {% if user.profile.is_librarian %}
-  <fieldset id="allowed-users-fieldset" style="display: none;">
+    <fieldset id="allowed-users-fieldset" style="display: none;">
     <legend>Select Users Allowed to Access (Librarians Already Have Access):</legend>
-    {% for user in form.allowed_users.field.queryset %}
-        <label>
-            <input type="checkbox" name="allowed_users" value="{{ user.id }}">
-            {{ user.username }} ({{ user.email }})
-        </label><br>
-    {% endfor %}
-  </fieldset>
-  {% endif %}
+
+    <input type="text" id="user-search" placeholder="Search users..." style="margin-bottom: 10px;">
+
+    <div id="allowed-users-list">
+        {% for user in form.allowed_users.field.queryset %}
+            <label class="user-entry">
+                <input type="checkbox" name="allowed_users" value="{{ user.id }}">
+                {{ user.username }} ({{ user.email }})<br>
+            </label>
+        {% endfor %}
+    </div>
+    </fieldset>
+{% endif %}
+
 
   <button type="submit">Create Collection</button>
 </form>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-      var visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
-      var allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
+    document.addEventListener("DOMContentLoaded", function () {
+        var visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
+        var allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
+  
+        function toggleAllowedUsers() {
+            allowedUsersFieldset.style.display = visibilityField.value === "private" ? "block" : "none";
+        }
+  
+        toggleAllowedUsers();
+        visibilityField.addEventListener("change", toggleAllowedUsers);
 
-      function toggleAllowedUsers() {
-          if (visibilityField.value === "private") {
-              allowedUsersFieldset.style.display = "block";
-          } else {
-              allowedUsersFieldset.style.display = "none";
-          }
-      }
+        var userSearchInput = document.getElementById("user-search");
+        var userLabels = document.querySelectorAll("#allowed-users-list .user-entry");
+        userLabels.forEach(function (label) {
+            label.style.display = "none";
+        });
+        userSearchInput.addEventListener("input", function () {
+    var searchTerm = this.value.toLowerCase();
 
-      toggleAllowedUsers();
-
-      visibilityField.addEventListener("change", toggleAllowedUsers);
-  });
-</script>
+    if (searchTerm.length < 3) {
+        userLabels.forEach(function (label) {
+            label.style.display = "none";
+        });
+    } else {
+        userLabels.forEach(function (label) {
+            var text = label.textContent.toLowerCase();
+            label.style.display = text.includes(searchTerm) ? "block" : "none";
+        });
+    }
+});
+    });
+  </script>
 {% endblock %}
