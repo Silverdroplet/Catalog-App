@@ -231,6 +231,11 @@ def my_collections(request):
         for collection in collections
     }
     modification_logs = {}  
+    for collection in collections:
+        images = []
+        for item in collection.items.all():
+            images.extend(item.images.all())  
+        collection.image_list = images
     for collect in collections:
         logs = collect.modification_logs.splitlines() if collect.modification_logs else []
         if logs:
@@ -324,17 +329,18 @@ def approve_access(request, collection_id, user_id):
 def collection_catalog(request):
     query = request.GET.get('q', '')  
     collections = Collection.objects.filter(visibility='public')
-    for collection in collections:
-        images = []
-        for item in collection.items.all():
-            images.extend(item.images.all())  
-        collection.image_list = images
 
     if request.user.is_authenticated:
         collections = Collection.objects.all()
 
     if query:
         collections = collections.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(items__name__icontains=query))
+
+    for collection in collections:
+        images = []
+        for item in collection.items.all():
+            images.extend(item.images.all())  
+        collection.image_list = images
 
     if request.user.is_authenticated and request.method == "POST" and "request_access" in request.POST:
         collection_id = request.POST.get("collection_id")

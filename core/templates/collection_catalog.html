@@ -19,30 +19,46 @@
                     {% if collection.visibility == 'public' %}
                         {# PUBLIC COLLECTIONS #}
                         {% if collection.image_list %}
-                        <div id="carousel-{{ collection.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+                            <div id="carousel-{{ collection.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+                            <div class="carousel-indicators">
+                                {% for image in collection.image_list %}
+                                <button type="button"
+                                        data-bs-target="#carousel-{{ collection.id }}"
+                                        data-bs-slide-to="{{ forloop.counter0 }}"
+                                        {% if forloop.first %}class="active"{% endif %}
+                                        aria-label="Slide {{ forloop.counter }}">
+                                </button>
+                                {% endfor %}
+                            </div>
                             <div class="carousel-inner">
                                 {% for image in collection.image_list %}
                                 <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                    <img src="{{ image.image.url }}" class="d-block w-100" style="max-height: 200px; object-fit: cover;" alt="Image {{ forloop.counter }}">
+                                <img src="{{ image.image.url }}" class="d-block w-100" style="max-height: 200px; object-fit: cover;" alt="Image {{ forloop.counter }}">
                                 </div>
                                 {% endfor %}
                             </div>
                             {% if collection.image_list|length > 1 %}
-                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ collection.id }}" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ collection.id }}" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
+                                <a class="carousel-control-prev custom-carousel-arrow"
+                                    href="#carousel-{{ collection.id }}"
+                                    role="button"
+                                    data-slide="prev">
+                                    <span class="arrow-icon">&#10094;</span>
+                                    </a>
+
+                                    <a class="carousel-control-next custom-carousel-arrow"
+                                    href="#carousel-{{ collection.id }}"
+                                    role="button"
+                                    data-slide="next">
+                                    <span class="arrow-icon">&#10095;</span>
+                                    </a>
                             {% endif %}
-                        </div>
-                        {% else %}
-                        <div class="mb-3 d-flex justify-content-center align-items-center bg-light text-muted" style="height: 200px;">
+                            </div>
+                            {% else %}
+                            <div class="mb-3 d-flex justify-content-center align-items-center bg-light text-muted" style="height: 200px;">
                             <span>No Images Available</span>
-                        </div>
-                        {% endif %}
+                            </div>
+                            {% endif %}
+
 
                         <h5 class="card-title">{{ collection.title }}</h5>
                         <p class="text-muted">Visibility: Public</p>
@@ -73,31 +89,48 @@
                     {% elif user.is_authenticated %}
                         {# AUTHENTICATED USER VIEWING PRIVATE COLLECTION #}
                         {% if user in collection.allowed_users.all or collection.creator == request.user %}
-                            {% if collection.image_list %}
-                            <div id="carousel-{{ collection.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
-                                <div class="carousel-inner">
-                                    {% for image in collection.image_list %}
-                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                        <img src="{{ image.url }}" class="d-block w-100" style="max-height: 200px; object-fit: cover;" alt="Image {{ forloop.counter }}">
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                {% if collection.image_list|length > 1 %}
-                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ collection.id }}" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ collection.id }}" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
-                                {% endif %}
+                        {% if collection.image_list %}
+                        <div id="carousel-{{ collection.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            {% for image in collection.image_list %}
+                            <button type="button"
+                                    data-bs-target="#carousel-{{ collection.id }}"
+                                    data-bs-slide-to="{{ forloop.counter0 }}"
+                                    {% if forloop.first %}class="active"{% endif %}
+                                    aria-label="Slide {{ forloop.counter }}">
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div class="carousel-inner">
+                            {% for image in collection.image_list %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ image.image.url }}" class="d-block w-100" style="max-height: 200px; object-fit: cover;" alt="Image {{ forloop.counter }}">
                             </div>
-                            {% else %}
-                            <div class="mb-3 d-flex justify-content-center align-items-center bg-light text-muted" style="height: 200px;">
-                                <span>No Images Available</span>
-                            </div>
-                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Navigation Arrows -->
+                        {% if collection.image_list|length > 1 %}
+                            <a class="carousel-control-prev custom-carousel-arrow"
+                                href="#carousel-{{ collection.id }}"
+                                role="button"
+                                data-slide="prev">
+                                <span class="arrow-icon">&#10094;</span>
+                                </a>
+
+                                <a class="carousel-control-next custom-carousel-arrow"
+                                href="#carousel-{{ collection.id }}"
+                                role="button"
+                                data-slide="next">
+                                <span class="arrow-icon">&#10095;</span>
+                                </a>
+                        {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="mb-3 d-flex justify-content-center align-items-center bg-light text-muted" style="height: 200px;">
+                        <span>No Images Available</span>
+                        </div>
+                        {% endif %}
 
                             <h5 class="card-title">{{ collection.title }}</h5>
                             <p class="text-muted"><em>Private collection (You have access)</em></p>

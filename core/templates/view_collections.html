@@ -30,28 +30,71 @@
 
     <div class="row">
         {% for collection in collections %}
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4 mb-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
+                    {% if collection.image_list %}
+                            <div id="carousel-{{ collection.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+                            <div class="carousel-indicators">
+                                {% for image in collection.image_list %}
+                                <button type="button"
+                                        data-bs-target="#carousel-{{ collection.id }}"
+                                        data-bs-slide-to="{{ forloop.counter0 }}"
+                                        {% if forloop.first %}class="active"{% endif %}
+                                        aria-label="Slide {{ forloop.counter }}">
+                                </button>
+                                {% endfor %}
+                            </div>
+                            <div class="carousel-inner">
+                                {% for image in collection.image_list %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" class="d-block w-100" style="max-height: 200px; object-fit: cover;" alt="Image {{ forloop.counter }}">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if collection.image_list|length > 1 %}
+                                <a class="carousel-control-prev custom-carousel-arrow"
+                                    href="#carousel-{{ collection.id }}"
+                                    role="button"
+                                    data-slide="prev">
+                                    <span class="arrow-icon">&#10094;</span>
+                                    </a>
+
+                                    <a class="carousel-control-next custom-carousel-arrow"
+                                    href="#carousel-{{ collection.id }}"
+                                    role="button"
+                                    data-slide="next">
+                                    <span class="arrow-icon">&#10095;</span>
+                                    </a>
+                            {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="mb-3 d-flex justify-content-center align-items-center bg-light text-muted" style="height: 200px;">
+                            <span>No Images Available</span>
+                            </div>
+                            {% endif %}
                     <h4 class="card-title">{{ collection.title }}</h4>
                     <p class="card-text"><strong>Description:</strong> {{ collection.description }}</p>
 
                     <h5>Collection Items:</h5>
                     {% if collection.items.all %}
-                        <ul class="list-group mb-3">
-                            {% for item in collection.items.all %}
-                            <li class="list-group-item">
-                                <strong>{{ item.name }}</strong> ({{ item.status }})
-                                <br>
-                                <small><strong>ID:</strong> {{ item.identifier }}</small><br>
-                                <small><strong>Description:</strong> {{ item.description }}</small><br>
-                                <small><strong>Location:</strong> {{ item.location }}</small>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No items in this collection.</p>
-                    {% endif %}
+                    <ul class="list-group mb-3">
+                        {% for item in collection.items.all|slice:":3" %}
+                        <li class="list-group-item">
+                            <strong>{{ item.name }}</strong> ({{ item.status }})
+                            <br>
+                            <small><strong>ID:</strong> {{ item.identifier }}</small><br>
+                            <small><strong>Description:</strong> {{ item.description }}</small><br>
+                            <small><strong>Location:</strong> {{ item.location }}</small>
+                        </li>
+                        {% endfor %}
+                        {% if collection.items.count > 3 %}
+                        <li class="list-group-item text-muted fst-italic">…and more!</li>
+                        {% endif %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No items in this collection.</p>
+                {% endif %}
 
                     {% if collection.access_requests.all %}
                         <h5>Access Requests:</h5>
@@ -71,9 +114,9 @@
                     {% endif %}
 
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <a href="{% url 'core:view_collection' collection.id %}" class="btn btn-primary btn-sm">View Details</a>
+                        <a href="{% url 'core:view_collection' collection.id %}" class="btn btn-primary btn-sm pl-3 pr-3">View Details</a>
                         {% if user.profile.is_librarian or collection.creator == request.user %}
-                            <a href="{% url 'core:edit_collection' collection.id %}" class="btn btn-info btn-sm text-white">Edit</a>
+                            <a href="{% url 'core:edit_collection' collection.id %}" class="btn btn-info btn-sm text-white pl-3 pr-3">Edit</a>
                         {% endif %}
                     </div>
 
