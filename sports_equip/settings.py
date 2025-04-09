@@ -220,7 +220,7 @@ SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 #ACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
 SITE_ID = 1
-
+SOCIALACCOUNT_LOGIN_ON_GET = True
 #adding AWS credentials
 
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
