@@ -3,54 +3,119 @@
 {% block title %}Edit Collection{% endblock %}
 
 {% block content %}
-<h2>Edit Collection: {{ collection.title }}</h2>
+<center><h2 style="font-size: 1.8rem; margin-bottom: 2rem;">Edit Collection: {{ collection.title }}</h2></center>
 
-<form method="post">
+<form method="post" class="container mt-4">
   {% csrf_token %}
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label"><strong>Title:</strong></label>
+        {{ form.title }}
+      </div>
 
-  <p><label for="{{ form.title.id_for_label }}">Title:</label> {{ form.title }}</p>
-  <p><label for="{{ form.description.id_for_label }}">Description:</label> {{ form.description }}</p>
-  
-  {% if form.visibility %}
-      <p><label for="{{ form.visibility.id_for_label }}">Visibility:</label> {{ form.visibility }}</p>
-  {% endif %}
-  
-  <fieldset>
-    <legend>Select Items to Edit:</legend>
-    {% for item in form.items.field.queryset %}
-        <label>
-            <input type="checkbox" name="items" value="{{ item.id }}"
-            {% if collection and item in collection.items.all %}checked{% endif %}>
-            <strong>{{ item.name }}</strong> ({{ item.status }})
-            <small>ID: {{ item.identifier }}, </small>
-            <small>Description: {{ item.description }}, </small>
-            <small>Location: {{ item.location }}</small>
-        </label><br>
-    {% endfor %}
-  </fieldset>
-  {% if user.profile.is_librarian %}
-    <fieldset id="allowed-users-fieldset" style="display: none;">
-    <legend>Select Users Allowed to Access (Librarians Already Have Access):</legend>
-    <input type="text" id="user-search" placeholder="Search users..." style="margin-bottom: 10px;">
-    <div id="allowed-users-list">
-        {% for user in form.allowed_users.field.queryset %}
-            <label class="user-entry">
-                <input type="checkbox" name="allowed_users" value="{{ user.id }}"
-                {% if user in form.instance.allowed_users.all %}checked{% endif %}>
-                {{ user.username }} ({{ user.email }})<br>
-            </label>
-        {% endfor %}
+      <div class="mb-3">
+        <label for="{{ form.description.id_for_label }}" class="form-label"><strong>Description:</strong></label>
+        {{ form.description }}
+      </div>
+
+      {% if form.visibility %}
+      <div class="mb-3">
+        <label for="{{ form.visibility.id_for_label }}" class="form-label"><strong>Visibility:</strong></label>
+        {{ form.visibility }}
+      </div>
+      {% endif %}
     </div>
-    </fieldset>
-   {% endif %}
 
-  <button type="submit">Edit Collection</button>
+    <div class="col-md-6">
+      <fieldset class="border p-3 rounded">
+        <legend class="w-auto px-2">Select Items to Edit:</legend>
+
+        <input type="text" id="item-search" placeholder="Search items..." class="form-control mb-3">
+
+        <div id="item-list" class="form-check" style="max-height: 400px; overflow-y: auto;">
+          {% for item in form.items.field.queryset %}
+          <div class="mb-3 p-2 border rounded item-entry d-flex justify-content-between align-items-start">
+            <div style="flex: 1;">
+              <label class="form-check-label d-block">
+                <input type="checkbox" name="items" value="{{ item.id }}" class="form-check-input me-2"
+                  {% if collection and item in collection.items.all %}checked{% endif %}>
+                <strong>{{ item.name }}</strong> ({{ item.status }})<br>
+                <small>ID: {{ item.identifier }}</small><br>
+                <small>Description: {{ item.description }}</small><br>
+                <small>Location: {{ item.location }}</small>
+              </label>
+            </div>
+
+            <div style="width: 100px; height: 100px; margin-left: 1rem; text-align: center;">
+              {% with item.images.all|first as image %}
+              {% if image %}
+              <img src="{{ image.image.url }}" alt="Item image" class="img-fluid rounded border"
+                style="object-fit: cover; width: 100%; height: 100%;">
+              {% else %}
+              <div class="border rounded d-flex align-items-center justify-content-center"
+                style="width: 100%; height: 100%; background-color: #f8f9fa;">
+                <small class="text-muted">No image</small>
+              </div>
+              {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+    </div>
+  </div>
+
+  {% if user.profile.is_librarian %}
+  <fieldset id="allowed-users-fieldset" class="mt-4 p-3 border rounded" style="display: none;">
+    <legend class="w-auto px-2">Select Users Allowed to Access (Librarians Already Have Access):</legend>
+    <input type="text" id="user-search" placeholder="Search users..." class="form-control mb-3">
+    <div id="allowed-users-list">
+      {% for user in form.allowed_users.field.queryset %}
+      <label class="user-entry d-block mb-2">
+        <input type="checkbox" name="allowed_users" value="{{ user.id }}"
+          {% if user in form.instance.allowed_users.all %}checked{% endif %}>
+        {{ user.username }} ({{ user.email }})
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% endif %}
+
+  <div class="mt-4">
+    <button type="submit" class="btn btn-primary">Edit Collection</button>
+  </div>
 </form>
 
-<a href="{% url 'core:my_collections' %}">Back to My Collections</a>
+<div class="mt-3">
+  <a href="{% url 'core:my_collections' %}" class="btn btn-secondary">Back to My Collections</a>
+</div>
+
+<style>
+  .hidden-entry {
+    display: none !important;
+  }
+</style>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
+    // --- ITEM SEARCH ---
+    const itemSearch = document.getElementById("item-search");
+    const itemEntries = document.querySelectorAll("#item-list .item-entry");
+
+    itemSearch.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") e.preventDefault();
+    });
+
+    itemSearch.addEventListener("input", function () {
+      const term = this.value.trim().toLowerCase();
+      itemEntries.forEach(entry => {
+        const text = entry.innerText.toLowerCase();
+        entry.classList.toggle("hidden-entry", !text.includes(term));
+      });
+    });
+
     var visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
     var allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
     var allowedUsersList = document.getElementById("allowed-users-list");
@@ -97,9 +162,6 @@
                 });
             });
     });
-});
-
+  });
 </script>
-    
-  
 {% endblock %}

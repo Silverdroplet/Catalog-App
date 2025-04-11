@@ -45,6 +45,12 @@ class CollectionForm(forms.ModelForm):
     class Meta:
         model = Collection
         fields = ['title', 'description', 'visibility', 'items', 'allowed_users']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'visibility': forms.Select(attrs={'class': 'form-select'}),
+            'allowed_users': forms.SelectMultiple(attrs={'class': 'form-select'}),
+        }
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)

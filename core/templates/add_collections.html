@@ -3,82 +3,153 @@
 {% block title %}Add A Collection!{% endblock %}
 
 {% block content %}
-<h2>Add a New Collection</h2>
+<center><h2 style="font-size: 1.8rem; margin-bottom: 2rem;">Add a New Collection</h2></center>
 
-<form method="post">
-  {% csrf_token %}
-
-  <p><label for="{{ form.title.id_for_label }}">Title:</label> {{ form.title }}</p>
-  <p><label for="{{ form.description.id_for_label }}">Description:</label> {{ form.description }}</p>
+<form method="post" class="container mt-4">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="{{ form.title.id_for_label }}" class="form-label"><strong>Title:</strong></label>
+          {{ form.title}}
+        </div>
   
-  {% if form.visibility %}
-      <p><label for="{{ form.visibility.id_for_label }}">Visibility:</label> {{ form.visibility }}</p>
-  {% endif %}
+        <div class="mb-3">
+          <label for="{{ form.description.id_for_label }}" class="form-label"><strong>Description:</strong></label>
+          {{ form.description }}
+        </div>
   
-  <fieldset>
-    <legend>Select Items to Add:</legend>
-    {% for item in form.items.field.queryset %}
-        <label>
-            <input type="checkbox" name="items" value="{{ item.id }}">
-            <strong>{{ item.name }}</strong> ({{ item.status }})
-            <small>ID: {{ item.identifier }}, </small>
-            <small>Description: {{ item.description }}, </small>
-            <small>Location: {{ item.location }}</small>
-        </label><br>
-    {% endfor %}
-  </fieldset>
-  {% if user.profile.is_librarian %}
-    <fieldset id="allowed-users-fieldset" style="display: none;">
-    <legend>Select Users Allowed to Access (Librarians Already Have Access):</legend>
+        {% if form.visibility %}
+        <div class="mb-3">
+          <label for="{{ form.visibility.id_for_label }}" class="form-label"><strong>Visibility:</strong></label>
+          {{ form.visibility}}
+        </div>
+        {% endif %}
+      </div>
+  
+      <div class="col-md-6">
+        <fieldset class="border p-3 rounded">
+            <legend class="w-auto px-2">Select Items to Add</legend>
+          
+            <input type="text" id="item-search" placeholder="Search items..." class="form-control mb-3">
 
-    <input type="text" id="user-search" placeholder="Search users..." style="margin-bottom: 10px;">
+            <div id="item-list" class="form-check" style="max-height: 400px; overflow-y: auto;">
+              {% for item in form.items.field.queryset %}
+              <div class="mb-3 p-2 border rounded item-entry d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                  <label class="form-check-label d-block">
+                    <input type="checkbox" name="items" value="{{ item.id }}" class="form-check-input me-2">
+                    <strong>{{ item.name }}</strong> ({{ item.status }})<br>
+                    <small>ID: {{ item.identifier }}</small><br>
+                    <small>Description: {{ item.description }}</small><br>
+                    <small>Location: {{ item.location }}</small>
+                  </label>
+                </div>
 
-    <div id="allowed-users-list">
-        {% for user in form.allowed_users.field.queryset %}
-            <label class="user-entry">
-                <input type="checkbox" name="allowed_users" value="{{ user.id }}">
-                {{ user.username }} ({{ user.email }})<br>
-            </label>
-        {% endfor %}
+                <div style="width: 100px; height: 100px; margin-left: 1rem; text-align: center;">
+                  {% with item.images.all|first as image %}
+                    {% if image %}
+                      <img src="{{ image.image.url }}" alt="Item image" class="img-fluid rounded border" style="object-fit: cover; width: 100%; height: 100%;">
+                    {% else %}
+                      <div class="border rounded d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; background-color: #f8f9fa;">
+                        <small class="text-muted">No image</small>
+                      </div>
+                    {% endif %}
+                  {% endwith %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </fieldset>
+          
+      </div>
     </div>
+  
+    {% if user.profile.is_librarian %}
+    <fieldset id="allowed-users-fieldset" class="mt-4 p-3 border rounded" style="display: none;">
+      <legend class="w-auto px-2">Select Users Allowed to Access (Librarians Already Have Access):</legend>
+      <input type="text" id="user-search" placeholder="Search users..." class="form-control mb-3">
+      <div id="allowed-users-list">
+        {% for user in form.allowed_users.field.queryset %}
+        <div class="form-check user-entry" style="display: none;">
+          <label class="form-check-label">
+            <input type="checkbox" name="allowed_users" value="{{ user.id }}" class="form-check-input">
+            {{ user.username }} ({{ user.email }})
+          </label>
+        </div>
+        {% endfor %}
+      </div>
     </fieldset>
-{% endif %}
+    {% endif %}
+  
+    <div class="mt-4">
+      <button type="submit" class="btn btn-primary">Create Collection</button>
+    </div>
+  </form>
 
-
-  <button type="submit">Create Collection</button>
-</form>
-
-<script>
+  <script>
     document.addEventListener("DOMContentLoaded", function () {
-        var visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
-        var allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
-  
+
+    const itemSearch = document.getElementById("item-search");
+      const itemEntries = document.querySelectorAll("#item-list .item-entry");
+    
+      if (itemSearch && itemEntries.length > 0) {
+        itemSearch.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") e.preventDefault(); 
+        });
+    
+        itemSearch.addEventListener("input", function () {
+            const term = this.value.trim().toLowerCase();
+            const itemEntries = document.querySelectorAll("#item-list .item-entry");
+
+            itemEntries.forEach(entry => {
+                const text = entry.innerText.toLowerCase();
+                entry.classList.toggle("hidden-entry", !text.includes(term));
+            });
+            });
+      }
+
+      const visibilityField = document.getElementById("{{ form.visibility.id_for_label }}");
+      const allowedUsersFieldset = document.getElementById("allowed-users-fieldset");
+      const allowedUsersList = document.getElementById("allowed-users-list");
+      const userSearchInput = document.getElementById("user-search");
+    
+      if (visibilityField) {
         function toggleAllowedUsers() {
-            allowedUsersFieldset.style.display = visibilityField.value === "private" ? "block" : "none";
+          allowedUsersFieldset.style.display = visibilityField.value === "private" ? "block" : "none";
         }
-  
+    
         toggleAllowedUsers();
         visibilityField.addEventListener("change", toggleAllowedUsers);
+      }
 
-        var userSearchInput = document.getElementById("user-search");
-        var userLabels = document.querySelectorAll("#allowed-users-list .user-entry");
-        userLabels.forEach(function (label) {
-            label.style.display = "none";
-        });
+      if (userSearchInput) {
         userSearchInput.addEventListener("input", function () {
-    var searchTerm = this.value.toLowerCase();
-
-    if (searchTerm.length < 3) {
-        userLabels.forEach(function (label) {
-            label.style.display = "none";
+          const searchTerm = this.value.toLowerCase();
+          if (searchTerm.length < 3) return;
+    
+          const existingSelections = new Set(
+            Array.from(document.querySelectorAll('input[name="allowed_users"]:checked')).map(cb => cb.value)
+          );
+    
+          fetch(`/librarians/api/search-users/?q=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.json())
+            .then(users => {
+              allowedUsersList.innerHTML = "";
+    
+              users.forEach(user => {
+                const label = document.createElement("label");
+                label.className = "form-check-label user-entry d-block mb-2";
+                label.innerHTML = `
+                  <input type="checkbox" name="allowed_users" value="${user.id}"
+                  ${existingSelections.has(String(user.id)) ? "checked" : ""}>
+                  ${user.username} (${user.email})
+                `;
+                allowedUsersList.appendChild(label);
+              });
+            });
         });
-    } else {
-        userLabels.forEach(function (label) {
-            var text = label.textContent.toLowerCase();
-            label.style.display = text.includes(searchTerm) ? "block" : "none";
-        });
-    }
-});
+      }
     });
-  </script>
+    </script>
 {% endblock %}
