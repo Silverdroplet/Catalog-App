@@ -1,6 +1,6 @@
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView, ListView
 from django.urls import reverse_lazy, reverse
@@ -75,7 +75,7 @@ def dashboard_redirect(request):
     else:
         return redirect("core:patron")
 
-class PatronDashboardView(LoginRequiredMixin, TemplateView):
+class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "patron.html"
 
     def get_context_data(self, **kwargs):
@@ -88,10 +88,24 @@ class PatronDashboardView(LoginRequiredMixin, TemplateView):
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         return context
+    
+    def test_func(self):
+        return self.request.user.groups.filter(name="Patrons").exists()
+    def handle_no_permission(self):
+        if self.request.user.groups.filter(name="Librarians").exists():
+            return redirect('core:librarian')
+        return redirect('core:home')
 
-class LibrarianDashboardView(LoginRequiredMixin, TemplateView):
+class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "librarian.html"
 
+    def test_func(self):
+        return self.request.user.groups.filter(name="Librarians").exists()
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            return redirect('core:patron')
+        return redirect('core:home')
+    
 @login_required
 def upload_profile_picture(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
