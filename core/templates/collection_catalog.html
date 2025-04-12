@@ -61,7 +61,11 @@
 
 
                         <h5 class="card-title">{{ collection.title }}</h5>
+                        {% if request.user == collection.creator %}
+                        <p class="text-muted">Visibility: Public (You own this collection)</p>
+                        {% else %}
                         <p class="text-muted">Visibility: Public</p>
+                        {% endif %}
                         <p class="card-text">Description: {{ collection.description }}</p>
 
                         <p><strong>Items:</strong></p>
@@ -133,7 +137,19 @@
                         {% endif %}
 
                             <h5 class="card-title">{{ collection.title }}</h5>
+                            {% if request.user == collection.creator %}
+                            <p class="text-muted"><em>Private collection (You are the owner)</em></p>
+                            {% else %}
                             <p class="text-muted"><em>Private collection (You have access)</em></p>
+                            {% endif %}
+                            {% if request.user == collection.creator %}
+                            {% if collection.access_requests.all %}
+                            <p class="text-muted">You have pending access requests actions.</p>
+                            {% else %}
+                            <p class="text-muted">No pending access requests.</p>
+                            {% endif %}
+                            {% endif %}
+
                             <p class="card-text">Description: {{ collection.description }}</p>
 
                             <p><strong>Items:</strong></p>
@@ -171,7 +187,7 @@
                             <form method="post">
                                 {% csrf_token %}
                                 <input type="hidden" name="collection_id" value="{{ collection.id }}">
-                                <button type="submit" name="request_access" class="btn btn-warning btn-sm">Request Access</button>
+                                <button type="submit" name="request_access" class="btn btn-primary btn-sm">Request Access</button>
                             </form>
                         {% endif %}
                     {% endif %}
