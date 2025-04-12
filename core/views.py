@@ -102,16 +102,21 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
 @login_required
 def upload_profile_picture(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
-    
+
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('core:patron')
+
+            if request.user.profile.is_librarian:
+                return redirect('core:librarian')
+            else:
+                return redirect('core:patron')
     else:
         form = ProfileForm(instance=profile)
-    
+
     return render(request, 'upload_profile_picture.html', {'form': form})
+
 
 @login_required
 def add_equipment(request):
