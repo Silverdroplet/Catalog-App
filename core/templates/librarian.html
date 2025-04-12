@@ -3,92 +3,91 @@
 {% block title %}Librarian Dashboard{% endblock %}
 
 {% block content %}
-  <!-- Extra CSS for uniform button sizing and spacing -->
-  <style>
-    /* Ensures all buttons have the same minimum width */
-    .btn-same-size {
-      min-width: 160px;
-    }
-    
-    /* Custom container for the buttons with extra spacing */
-    .btn-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    /* Apply margin to each button for additional space */
-    .btn-container a {
-      margin: 0.5rem 1rem; /* 0.5rem vertical, 1rem horizontal margin */
-    }
-  </style>
-
-  <h1 class="mb-4">Welcome, Librarian {{ profile.user.get_full_name }}!</h1>
+  <h1 class="mb-4">Welcome Librarian, {{ user.get_full_name }}!</h1>
 
   <div class="container-fluid content-wrapper">
     <div class="row">
-      <!-- Left column: profile picture, name, etc. -->
+      
+      <!-- Left Column: Profile Details -->
       <div class="col-md-4 col-lg-4 text-center p-4 border-end">
         {% if profile.profile_picture %}
-          <img src="{{ profile.profile_picture.url }}" 
-               alt="Profile Picture" 
-               class="img-thumbnail rounded-circle mb-3" 
-               width="150">
+          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150">
         {% else %}
-          <p>No image</p>
+          <p>No profile picture available.</p>
         {% endif %}
-        
         <p>
-          <a href="{% url 'core:upload_profile_picture' %}" 
-             class="btn btn-primary" role="button">
+          <a href="{% url 'core:upload_profile_picture' %}" class="btn btn-primary" role="button">
             Change Profile Picture
           </a>
         </p>
-        
-        <p class="text-muted">Your email: {{ profile.user.email }}</p>
+        <p class="text-muted">Email: {{ user.email }}</p>
         <p class="text-muted">Joined: {{ profile.joined_date }}</p>
       </div>
       
-      <!-- Right column: buttons and equipment table -->
+      <!-- Right Column: Dashboard Functionalities -->
       <div class="col-md-8 col-lg-8 p-4">
-        <!-- Container for buttons with custom spacing -->
-        <div class="btn-container">
-          <a href="{% url 'core:catalog' %}" class="btn btn-primary btn-lg btn-same-size">
-            Browse Catalog
-          </a>
-          <a href="{% url 'core:catalog' %}" class="btn btn-primary btn-lg btn-same-size">
-            Manage Catalog
-          </a>
-          <a href="{% url 'core:add_collection' %}" class="btn btn-primary btn-lg btn-same-size">
-            Add Collection
-          </a>
-          <a href="{% url 'core:my_collections' %}" class="btn btn-primary btn-lg btn-same-size">
-            View Your Collections
-          </a>
+        
+        <!-- Messages Inbox Card -->
+        <div class="card w-100 mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Messages Inbox</h4>
+          </div>
+          <div class="card-body">
+            {% if messages %}
+              <ul class="list-group">
+                {% for message in messages %}
+                  <li class="list-group-item">{{ message }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0">No messages.</p>
+            {% endif %}
+          </div>
         </div>
         
-        <h2 class="mt-4">Equipment You're Currently Renting</h2>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Condition</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for equipment in equipment_list %}
-              <tr>
-                <td>{{ equipment.name }}</td>
-                <td>{{ equipment.condition }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="row">
+          <!-- Pending Borrow Requests -->
+          <div class="col-md-6 mb-4">
+            <h2>Pending Borrow Requests</h2>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Patron</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for request in borrow_requests %}
+                  <tr>
+                    <td>{{ request.equipment.name }}</td>
+                    <td>{{ request.patron.username }}</td>
+                    <td>
+                      <a href="{% url 'core:approve_request' request.id %}" class="btn btn-success btn-sm me-1">Approve</a>
+                      <a href="{% url 'core:deny_request' request.id %}" class="btn btn-danger btn-sm">Deny</a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="3">No pending borrow requests.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Equipment & Collections Management -->
+          <div class="col-md-6">
+            <h2>Manage Equipment</h2>
+            <a href="{% url 'core:add_equipment' %}" class="btn btn-primary mb-3">Add New Equipment</a>
+            
+            <h2>Collections</h2>
+            <!-- Only the Add New Collection button is available now -->
+            <a href="{% url 'core:add_collection' %}" class="btn btn-primary">Add New Collection</a>
+          </div>
+        </div>
         
       </div>
-      
     </div>
   </div>
-  
 {% endblock %}

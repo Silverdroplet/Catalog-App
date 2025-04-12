@@ -3,66 +3,80 @@
 {% block title %}Patron Dashboard{% endblock %}
 
 {% block content %}
+  <h1 class="mb-4">Welcome, {{ profile.user.get_full_name }}!</h1>
 
-<body>
-<h1 class="mb-4">Welcome, {{ profile.user.get_full_name }}!</h1>
-
-<div class="container-fluid content-wrapper">
-  <div class = "row">
-
-      <!--Left column: Contains the profile picture, name, and joined date-->
+  <div class="container-fluid content-wrapper">
+    <div class="row">
+      <!-- Left Column: Profile Picture and Details -->
       <div class="col-md-4 col-lg-4 text-center p-4 border-end">
-            <!--profile picture-->
         {% if profile.profile_picture %}
-        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150">
+          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150">
         {% else %}
-          <p>
-            No image
-          </p>
+          <p>No image</p>
         {% endif %}
-        
         <p>
-          <a href="{% url 'core:upload_profile_picture' %}" class="btn btn-primary" role="button">
+          <a href="{% url 'core:upload_profile_picture' %}" class="btn btn-primary btn-sm" role="button">
             Change Profile Picture
           </a>
         </p>
-        
         <p class="text-muted">Your email: {{ profile.user.email }}</p>
         <p class="text-muted">Joined: {{ profile.joined_date }}</p>
       </div>
 
-      <!--Right column: buttons-->
-      <div class="col-md-8 col-lg-8 p-4 d-flex flex-column justify-content-center align-items-center">
-          <a href="{% url 'core:catalog' %}" class="btn btn-primary btn-lg w-75 mb-3">
-          Browse Catalog
+      <!-- Right Column: Messages Inbox, Equipment Table, and Action Buttons -->
+      <div class="col-md-8 col-lg-8 p-4 d-flex flex-column align-items-center">
+
+        <!-- Messages Inbox Card -->
+        <div class="card w-100 mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Messages Inbox</h4>
+          </div>
+          <div class="card-body">
+            {% if messages %}
+              <ul class="list-group">
+                {% for message in messages %}
+                  <li class="list-group-item">{{ message }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0">No messages.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Equipment Renting Table -->
+        <h2>Equipment You're Currently Renting</h2>
+        <table class="table table-striped w-100">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Condition</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loan in equipment_list %}
+              <tr>
+                <td>{{ loan.equipment.name }}</td>
+                <td>{{ loan.equipment.status }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="2">You're not renting anything currently.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Action Buttons Container: Aligned to the right with extra spacing -->
+        <div class="d-flex justify-content-end gap-4 mt-3 w-100">
+          <a href="{% url 'core:catalog' %}" class="btn btn-primary btn-sm">
+            Browse Catalog
           </a>
-
-          <h2>Equipment You're Currently Renting</h2>
-          <table class="table table-striped">
-              <thead>
-                  <tr>
-                      <th>Name</th>
-                      <th>Condition</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {% for loan in equipment_list %}
-                    <tr>
-                        <td>{{ loan.equipment.name }}</td>
-                        <td>{{ loan.equipment.status }}</td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="2">You're not renting anything currently.</td></tr>
-                  {% endfor %}
-              </tbody>
-          </table>
-
+          <a href="{% url 'core:add_collection' %}" class="btn btn-primary btn-sm">
+            Add to Collection
+          </a>
+        </div>
       </div>
-
     </div>
   </div>
-
 {% endblock %}
-
-
-
