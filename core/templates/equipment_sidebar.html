@@ -17,7 +17,14 @@
 
 <!-- Borrow Button -->
 {% if request.user.is_authenticated %}
-  <button class="btn btn-success mt-3">Borrow Item</button>
+  {% if item.is_available %}
+    <form method="POST" action="{% url 'core:borrow_item' item.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success">Borrow Item</button>
+    </form>
+  {% else %}
+    <button class="btn btn-secondary" disabled>Not Available</button>
+  {% endif %}
 {% endif %}
 
 <!-- Librarian Actions -->
