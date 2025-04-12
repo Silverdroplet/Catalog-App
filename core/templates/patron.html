@@ -10,12 +10,12 @@
       <!-- Left Column: Profile Picture and Details -->
       <div class="col-md-4 col-lg-4 text-center p-4 border-end">
         {% if profile.profile_picture %}
-          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150">
+          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150" height="150">
         {% else %}
           <p>No image</p>
         {% endif %}
         <p>
-          <a href="{% url 'core:upload_profile_picture' %}" class="btn btn-primary btn-sm" role="button">
+          <a href="{% url 'core:upload_profile_picture' %}" class="btn btn-primary" role="button">
             Change Profile Picture
           </a>
         </p>
@@ -69,10 +69,10 @@
 
         <!-- Action Buttons Container: Aligned to the right with extra spacing -->
         <div class="d-flex justify-content-end gap-4 mt-3 w-100">
-          <a href="{% url 'core:catalog' %}" class="btn btn-primary btn-sm">
+          <a href="{% url 'core:catalog' %}" class="btn btn-primary m-2">
             Browse Catalog
           </a>
-          <a href="{% url 'core:add_collection' %}" class="btn btn-primary btn-sm">
+          <a href="{% url 'core:add_collection' %}" class="btn btn-primary m-2">
             Add to Collection
           </a>
         </div>
