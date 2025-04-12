@@ -7,12 +7,14 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.template.loader import render_to_string
-from .models import Equipment, Profile, Review, Collection, User
+from .models import Equipment, Profile, Review, Collection, User, Loan
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
 from .models import Collection, CollectionAccessRequest
 from django.db.models import Q
 from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -84,8 +86,7 @@ class PatronDashboardView(LoginRequiredMixin, TemplateView):
         context["name"] = user.first_name if user.first_name else "Guest"
         context["username"] = user.email.split('@')[0] if user.email else user.username
         context["email"] = user.email if user.email else "No email provided"
-        #context["equipment_list"] = user.borrowed_equipment.all()
-        context["equipment_list"] = []
+        context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         return context
 
 class LibrarianDashboardView(LoginRequiredMixin, TemplateView):
@@ -398,3 +399,18 @@ def search_users(request):
         {"id": u.id, "username": u.username, "email": u.email}
         for u in results
     ], safe=False)
+
+@login_required
+def borrow_item(request, equipment_id):
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+    if equipment.is_available:
+        equipment.is_available = False
+        equipment.save()
+        #We create a loan record (default return a week later for now)
+        Loan.objects.create(
+            user=request.user,
+            equipment=equipment,
+            borrowedAt=timezone.now(),
+            returnDate=timezone.now() + timedelta(days=7)
+        )
+    return redirect('core:catalog')
