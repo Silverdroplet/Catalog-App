@@ -399,7 +399,9 @@ def delete_collection(request, collection_id):
 
 def equipment_details_sidebar(request, item_id):
     item = get_object_or_404(Equipment, id=item_id)
-    loan = Loan.objects.filter(equipment=item, user=request.user).order_by('-borrowedAt').first()
+    loan = None
+    if request.user.is_authenticated:
+        loan = Loan.objects.filter(equipment=item, user=request.user).order_by('-borrowedAt').first()
     reviews = Review.objects.filter(equipment=item)
     html = render_to_string("equipment_sidebar.html", {
         "item": item,
