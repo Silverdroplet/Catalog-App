@@ -390,9 +390,11 @@ def equipment_details_sidebar(request, item_id):
     else:
         collections = Collection.objects.filter(creator=request.user)
     reviews = Review.objects.filter(equipment=item)
+    loan = Loan.objects.filter(equipment=item, user=request.user).order_by('-borrowedAt').first()
     html = render_to_string("equipment_sidebar.html", {
         "item": item,
         "collections": collections,
+        "loan": loan,
         "reviews": reviews
     }, request=request)
     return HttpResponse(html)
@@ -439,3 +441,20 @@ def add_item_to_collection(request, item_id):
         collection.items.add(item)
         messages.success(request, f'Item added to the collection "{collection.title}".')
         return redirect('core:catalog')
+def return_item(request, equipment_id):
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+    loan = Loan.objects.filter(equipment=equipment, user=request.user).order_by('-borrowedAt').first()
+    if equipment.is_available:
+        messages.error(request, "This item is still available.")
+        return redirect('core:catalog')
+    else:
+        if loan:
+            equipment.is_available = True
+            equipment.save()
+            messages.success(request, f'You have successfully returned "{equipment.name}".')
+            loan.delete()
+        else:
+            messages.error(request, "No loan record found for this item.")
+
+    return redirect('core:catalog')
+    

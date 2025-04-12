@@ -5,7 +5,7 @@ from .views import (
     PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
     add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, 
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection, 
-    equipment_details_sidebar, search_users, borrow_item, add_item_to_collection
+    equipment_details_sidebar, search_users, borrow_item, add_item_to_collection, return_item
 )
 
 app_name = "core"
@@ -19,7 +19,7 @@ urlpatterns = [
     path("dashboard/", dashboard_redirect, name="dashboard"),
     path("dashboard/patron/", PatronDashboardView.as_view(), name="patron"),
     path("dashboard/librarian/", LibrarianDashboardView.as_view(), name="librarian"),
-    path("dashboard/patron/upload-profile-picture/", upload_profile_picture, name="upload_profile_picture"),
+    path("dashboard/upload-profile-picture/", upload_profile_picture, name="upload_profile_picture"),
     path("dashboard/librarian/add-equipment/", add_equipment, name="add_equipment"),
     path("dashboard/librarian/edit-equipment/<int:equipment_id>/", edit_equipment, name="edit_equipment"),
     path("equipment/<int:equipment_id>/delete/", delete_equipment, name="delete_equipment"),
@@ -36,4 +36,5 @@ urlpatterns = [
     path('librarians/api/search-users/', search_users, name='search_users'),
     path('equipment/<int:equipment_id>/borrow/', borrow_item, name='borrow_item'),
     path('catalog/<int:item_id>/add-to-collection/', add_item_to_collection, name='add_item_to_collection'),
+    path('equipment/<int:equipment_id>/return/', return_item, name='return_item'),
 ]
