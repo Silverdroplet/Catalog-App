@@ -67,16 +67,18 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
            # Ensure profile exists
            profile, created = Profile.objects.get_or_create(user=user)
            profile.profile_picture = data.get("picture", "")
+           
 
-
-       # Assign users to the "Patrons" group by default
        if not user.groups.exists():  # Check if user is in any group
            group, created = Group.objects.get_or_create(name="Patrons")
            user.groups.add(group)
-           profile.is_librarian = False
+
+           # Always sync is_librarian with group
+           profile.is_librarian = user.groups.filter(name="Librarians").exists()
       
-       if user.groups.filter(name="Librarians").exists():
-           profile.is_librarian = True
+       #if user.groups.filter(name="Librarians").exists():
+         #  profile.is_librarian = True
+
 
 
 
