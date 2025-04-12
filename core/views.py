@@ -92,6 +92,8 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
     def test_func(self):
         return self.request.user.groups.filter(name="Patrons").exists()
     def handle_no_permission(self):
+        if self.request.user.groups.filter(name="Librarians").exists():
+            return redirect('core:librarian')
         return redirect('core:home')
 
 class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -100,6 +102,8 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
     def test_func(self):
         return self.request.user.groups.filter(name="Librarians").exists()
     def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            return redirect('core:patron')
         return redirect('core:home')
     
 @login_required
