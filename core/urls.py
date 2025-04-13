@@ -5,7 +5,7 @@ from .views import (
     PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
     add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, 
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection, 
-    equipment_details_sidebar, search_users, borrow_item, return_item
+    equipment_details_sidebar, search_users, borrow_item, add_item_to_collection, return_item
 )
 
 app_name = "core"
@@ -35,5 +35,6 @@ urlpatterns = [
     path('equipment/details/<int:item_id>/', equipment_details_sidebar, name='equipment_details_sidebar'),
     path('librarians/api/search-users/', search_users, name='search_users'),
     path('equipment/<int:equipment_id>/borrow/', borrow_item, name='borrow_item'),
+    path('catalog/<int:item_id>/add-to-collection/', add_item_to_collection, name='add_item_to_collection'),
     path('equipment/<int:equipment_id>/return/', return_item, name='return_item'),
 ]

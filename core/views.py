@@ -399,12 +399,19 @@ def delete_collection(request, collection_id):
 
 def equipment_details_sidebar(request, item_id):
     item = get_object_or_404(Equipment, id=item_id)
+    if request.user.is_authenticated:
+        collections = Collection.objects.filter(creator=request.user)
+        if request.user.profile.is_librarian:
+            collections = Collection.objects.all()
+    else:
+        collections = None
     loan = None
     if request.user.is_authenticated:
         loan = Loan.objects.filter(equipment=item, user=request.user).order_by('-borrowedAt').first()
     reviews = Review.objects.filter(equipment=item)
     html = render_to_string("equipment_sidebar.html", {
         "item": item,
+        "collections": collections,
         "loan": loan,
         "reviews": reviews
     }, request=request)
@@ -439,6 +446,19 @@ def borrow_item(request, equipment_id):
     return redirect('core:catalog')
 
 @login_required
+def add_item_to_collection(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Equipment, id=item_id)
+        collection_id = request.POST.get('collection_id')
+        collection = get_object_or_404(Collection, id=collection_id)
+
+        if collection.visibility == 'private' and request.user not in collection.allowed_users.all() and not request.user.profile.is_librarian:
+            messages.error(request, 'You do not have permission to add to this collection.')
+            return redirect('core:catalog')
+
+        collection.items.add(item)
+        messages.success(request, f'Item added to the collection "{collection.title}".')
+        return redirect('core:catalog')
 def return_item(request, equipment_id):
     equipment = get_object_or_404(Equipment, id=equipment_id)
     loan = Loan.objects.filter(equipment=equipment, user=request.user).order_by('-borrowedAt').first()
