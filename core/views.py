@@ -399,10 +399,12 @@ def delete_collection(request, collection_id):
 
 def equipment_details_sidebar(request, item_id):
     item = get_object_or_404(Equipment, id=item_id)
-    if request.user.profile.is_librarian:
-        collections = Collection.objects.all()
-    else:
+    if request.user.is_authenticated:
         collections = Collection.objects.filter(creator=request.user)
+        if request.user.profile.is_librarian:
+            collections = Collection.objects.all()
+    else:
+        collections = None
     loan = None
     if request.user.is_authenticated:
         loan = Loan.objects.filter(equipment=item, user=request.user).order_by('-borrowedAt').first()
