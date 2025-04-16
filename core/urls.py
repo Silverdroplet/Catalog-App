@@ -5,7 +5,7 @@ from .views import (
     PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
     add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, 
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection, 
-    equipment_details_sidebar, search_users, borrow_item, add_item_to_collection, return_item
+    equipment_details_sidebar, search_users, borrow_item, add_item_to_collection, return_item, deny_access_request
 )
 
 app_name = "core"
@@ -30,6 +30,7 @@ urlpatterns = [
     path('collections/<int:collection_id>/', view_collection, name='view_collection'),
     path('dashboard/collections/edit/<int:collection_id>/', edit_collection, name='edit_collection'),
     path('collections/<int:collection_id>/approve_access/<int:user_id>/', approve_access, name='approve_access'),
+    path('collections/<int:collection_id>/deny_access/<int:user_id>/', deny_access_request, name='deny_access_request'),
     path('catalog/collections', collection_catalog, name='collection_catalog'),
     path('collections/delete/<int:collection_id>/', delete_collection, name='delete_collection'),
     path('equipment/details/<int:item_id>/', equipment_details_sidebar, name='equipment_details_sidebar'),

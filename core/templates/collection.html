@@ -76,6 +76,10 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-success">Approve</button>
                 </form>
+                <form method="post" action="{% url 'core:deny_access_request' collection.id user.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">Deny</button>
+                </form>
             </li>
             {% endfor %}
         </ul>

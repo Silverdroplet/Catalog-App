@@ -322,6 +322,8 @@ def view_collection(request, collection_id):
             collection.access_requests.add(request.user) 
             collection.save()
             messages.success(request, "Your request has been submitted.")
+        else: 
+            messages.warning(request, "Your request was denied previously.")
 
         return HttpResponseRedirect(reverse('core:view_collection', args=[collection.id]))  
 
@@ -371,10 +373,14 @@ def collection_catalog(request):
             collection.access_requests.add(request.user) 
             collection.save()
             messages.success(request, "Your request has been submitted.")
-
+        else: 
+            messages.warning(request, "Your request was denied previously.")
         return HttpResponseRedirect(reverse('core:collection_catalog'))  
     access_requests = None
     if request.user.is_authenticated:
+        for collection in collections:
+            requite = CollectionAccessRequest.objects.filter(user=request.user, collection=collection).first()
+            collection.user_access_request = requite
         access_requests = {
             collection.id: CollectionAccessRequest.objects.filter(user=request.user, collection=collection).exists()
             for collection in collections
@@ -383,7 +389,7 @@ def collection_catalog(request):
     return render(request, 'collection_catalog.html', {
         'collections': collections,
         'query': query,
-        'access_requests': access_requests 
+        'access_requests': access_requests
     })
 
 @login_required
@@ -459,6 +465,8 @@ def add_item_to_collection(request, item_id):
         collection.items.add(item)
         messages.success(request, f'Item added to the collection "{collection.title}".')
         return redirect('core:catalog')
+
+@login_required
 def return_item(request, equipment_id):
     equipment = get_object_or_404(Equipment, id=equipment_id)
     loan = Loan.objects.filter(equipment=equipment, user=request.user).order_by('-borrowedAt').first()
@@ -476,3 +484,17 @@ def return_item(request, equipment_id):
 
     return redirect('core:catalog')
     
+@login_required
+def deny_access_request(request, collection_id, user_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    if collection.creator == request.user or request.user.profile.is_librarian:
+        access_request = get_object_or_404(CollectionAccessRequest, collection=collection, user_id=user_id)
+        access_request.status = 'Denied'
+        access_request.save()
+        collection.access_requests.remove(access_request.user)
+        collection.save()
+
+        return redirect('core:view_collection', collection_id=collection.id)
+
+    return redirect('core:dashboard') 

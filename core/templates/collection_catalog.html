@@ -180,6 +180,10 @@
                             <h5 class="card-title">{{ collection.title }}</h5>
                             <p><em>(Private collection, details hidden)</em></p>
                             <p>Your request to access this collection is pending approval.</p>
+                        {% elif collection.user_access_request.status == 'denied' %}
+                            <h5 class="card-title">{{ collection.title }}</h5>
+                            <p><em>(Private collection, details hidden)</em></p>
+                            <p>Your request to access this collection was denied.</p>
                         {% else %}
                             <h5 class="card-title">{{ collection.title }}</h5>
                             <p><em>(Private collection, details hidden)</em></p>
