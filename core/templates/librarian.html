@@ -33,14 +33,27 @@
             <h4 class="mb-0">Messages Inbox</h4>
           </div>
           <div class="card-body">
+            {% for collection in collections %}
+              {% for user in collection.access_requests.all %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Collection "{{ collection.title }} "has an access request from {{ user.username }}
+                    <form method="post" action="{% url 'core:approve_access' collection.id user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'core:deny_access_request' collection.id user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Deny</button>
+                    </form>
+                </li>
+              {% endfor %}
+            {% endfor %}
             {% if messages %}
               <ul class="list-group">
                 {% for message in messages %}
                   <li class="list-group-item">{{ message }}</li>
                 {% endfor %}
               </ul>
-            {% else %}
-              <p class="mb-0">No messages.</p>
             {% endif %}
           </div>
         </div>

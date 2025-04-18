@@ -98,7 +98,17 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
 
 class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "librarian.html"
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        profile, created = Profile.objects.get_or_create(user=user)
+        context["profile"] = profile
+        context["name"] = user.first_name if user.first_name else "Guest"
+        context["username"] = user.email.split('@')[0] if user.email else user.username
+        context["email"] = user.email if user.email else "No email provided"
+        context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
+        context["collections"] = Collection.objects.filter(creator=user)
+        return context
     def test_func(self):
         return self.request.user.groups.filter(name="Librarians").exists()
     def handle_no_permission(self):
@@ -498,3 +508,4 @@ def deny_access_request(request, collection_id, user_id):
         return redirect('core:view_collection', collection_id=collection.id)
 
     return redirect('core:dashboard') 
+
