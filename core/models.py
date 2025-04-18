@@ -140,7 +140,7 @@ class BorrowRequest(models.Model):
         ('approved', 'Approved'),
         ('denied', 'Denied'),
     ]
-    item = models.ForeignKey(Equipment, on_delete=models.CASCADE)
+    item = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name='borrow_requests')
     patron = models.ForeignKey(User, on_delete=models.CASCADE, related_name='borrow_requests')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     timestamp = models.DateTimeField(auto_now_add=True)
