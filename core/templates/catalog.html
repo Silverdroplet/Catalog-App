@@ -1,47 +1,89 @@
 {% extends "base.html" %}
 {% block title %}Equipment Catalog{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Crop all thumbnails to a fixed height */
+  .card-img-top {
+    height: 180px;
+    object-fit: cover;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4">
   <div class="row">
 
-    <!-- Left: Filters and Item Grid -->
-    <div class="col-md-9 pe-4">
-
-      <!-- Top Filter/Search Bar -->
-      <form method="get" class="mb-4 d-flex gap-3">
-        <input type="text" name="q" class="form-control" placeholder="Search by name..." value="{{ request.GET.q }}">
-
-        <select name="location" class="form-select" onchange="this.form.submit()">
-          <option value="">All Gyms</option>
-          {% for loc in gyms %}
-            <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>{{ loc }}</option>
-          {% endfor %}
-        </select>
-
-        <select name="sport" class="form-select" onchange="this.form.submit()">
-          <option value="">All Sports</option>
-          {% for sport in sports %}
-            <option value="{{ sport }}" {% if request.GET.sport == sport %}selected{% endif %}>{{ sport }}</option>
-          {% endfor %}
-        </select>
-
-        <button type="submit" class="btn btn-primary">Filter</button>
+    <!-- Left: Filters -->
+    <div class="col-12 mb-4">
+      <form method="get" class="row gx-3 gy-2 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Search by name</label>
+          <input
+            type="text" name="q"
+            class="form-control"
+            placeholder="e.g. Basketball"
+            value="{{ request.GET.q }}">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Gym Location</label>
+          <select
+            name="location"
+            class="form-select"
+            onchange="this.form.submit()">
+            <option value="">All Gyms</option>
+            {% for loc in gyms %}
+            <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>
+              {{ loc }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Sport</label>
+          <select
+            name="sport"
+            class="form-select"
+            onchange="this.form.submit()">
+            <option value="">All Sports</option>
+            {% for sport in sports %}
+            <option value="{{ sport }}" {% if request.GET.sport == sport %}selected{% endif %}>
+              {{ sport }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
       </form>
+    </div>
 
-      <!-- Grid of Items -->
-      <div class="row row-cols-1 row-cols-md-3 g-4">
+    <!-- Left: 3‑up Grid -->
+    <div class="col-md-9">
+      <div class="row g-4">
         {% for item in items %}
-        <div class="col">
-          <div class="card h-100">
+        <div class="col-12 col-md-4 d-flex">
+          <div class="card flex-fill w-100 h-100 d-flex flex-column shadow-sm">
             {% if item.images.first %}
-              <img src="{{ item.images.first.image.url }}" class="card-img-top" alt="{{ item.name }}">
+            <img
+              src="{{ item.images.first.image.url }}"
+              class="card-img-top"
+              alt="{{ item.name }}">
             {% else %}
-              <div class="card-img-top bg-secondary text-white text-center p-5">No Image</div>
+            <div class="card-img-top bg-secondary text-white
+                        d-flex align-items-center justify-content-center">
+              No Image
+            </div>
             {% endif %}
-            <div class="card-body">
-              <h5 class="card-title">{{ item.name }}</h5>
-              <button class="btn btn-outline-primary" onclick="loadSidebar({{ item.id }})">More Details</button>
+
+            <div class="card-body d-flex flex-column justify-content-between">
+              <h5 class="card-title text-center text-truncate">
+                {{ item.name }}
+              </h5>
+              <button
+                class="btn btn-outline-primary mt-2"
+                onclick="loadSidebar({{ item.id }})">
+                More Details
+              </button>
             </div>
           </div>
         </div>
@@ -50,30 +92,26 @@
     </div>
 
     <!-- Right: Sidebar -->
-    <div class="col-md-3 ps-4 border-start" id="sidebar" style="min-height: 100vh;">
+    <div class="col-md-3 ps-4 border-start" id="sidebar" style="min-height:100vh;">
       <h4>Details</h4>
       <div id="sidebar-content">
-        <p>Select an item to view details.</p>
+        <p class="text-muted">Select an item to view details.</p>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- JS to Load Sidebar Content -->
 <script>
 function loadSidebar(itemId) {
   fetch(`/equipment/details/${itemId}/`)
-    .then(response => response.text())
+    .then(r => r.text())
     .then(html => {
       document.getElementById("sidebar-content").innerHTML = html;
     });
 }
 </script>
 
-<!-- Back to Home -->
-<div class="mt-4">
+<div class="text-center mt-4">
   <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg">Back to Home</a>
 </div>
-
 {% endblock %}
