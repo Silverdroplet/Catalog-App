@@ -33,31 +33,39 @@
             <h4 class="mb-0">Messages Inbox</h4>
           </div>
           <div class="card-body">
+            <!-- Collection Access Request -->
             {% for collection in collections %}
               {% for user in collection.access_requests.all %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                  Collection "{{ collection.title }} "has an access request from {{ user.username }}
-                    <form method="post" action="{% url 'core:approve_access' collection.id user.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                    </form>
-                    <form method="post" action="{% url 'core:deny_access_request' collection.id user.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-danger">Deny</button>
-                    </form>
+                  Collection "{{ collection.title }}" has an access request from {{ user.username }}
+                  <form method="post" action="{% url 'core:approve_access' collection.id user.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                  </form>
+                  <form method="post" action="{% url 'core:deny_access_request' collection.id user.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-danger">Deny</button>
+                  </form>
                 </li>
               {% endfor %}
             {% endfor %}
-            {% if messages %}
-              <ul class="list-group">
-                {% for message in messages %}
-                  <li class="list-group-item">{{ message }}</li>
+
+            <!-- New Notification messages -->
+            {% if notifications %}
+              <ul class="list-group mt-3">
+                {% for note in notifications %}
+                  <li class="list-group-item">
+                    {{ note.message }}<br>
+                    <small class="text-muted">{{ note.created_at|naturaltime }}</small>
+                  </li>
                 {% endfor %}
               </ul>
+            {% else %}
+              <p class="mb-0">No messages.</p>
             {% endif %}
           </div>
         </div>
-        
+
         <div class="row">
           <!-- Pending Borrow Requests -->
           <div class="col-md-6 mb-4">
@@ -76,8 +84,8 @@
                     <td>{{ request.equipment.name }}</td>
                     <td>{{ request.patron.username }}</td>
                     <td>
-                      <a href="{% url 'core:approve_request' request.id %}" class="btn btn-success btn-sm me-1">Approve</a>
-                      <a href="{% url 'core:deny_request' request.id %}" class="btn btn-danger btn-sm">Deny</a>
+                      <a href="{% url 'core:approve_borrow_request' request.id %}" class="btn btn-success btn-sm me-1">Approve</a>
+                      <a href="{% url 'core:deny_borrow_request' request.id %}" class="btn btn-danger btn-sm">Deny</a>
                     </td>
                   </tr>
                 {% empty %}

@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from .models import Equipment, Profile, Review, Collection, User, Loan
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
-from .models import Collection, CollectionAccessRequest
+from .models import Collection, CollectionAccessRequest, BorrowRequest, Notification
 from django.db.models import Q
 from django.db import transaction
 from django.utils import timezone
@@ -87,6 +87,7 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         context["username"] = user.email.split('@')[0] if user.email else user.username
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
+        context["notifications"] = Notification.objects.filter(user=user).order_by("-created_at")[:10]
         return context
     
     def test_func(self):
@@ -108,6 +109,8 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         context["collections"] = Collection.objects.filter(creator=user)
+        context["borrow_requests"] = BorrowRequest.objects.filter(status="pending")
+        context["notifications"] = Notification.objects.filter(user=user).order_by("-created_at")[:10]
         return context
     def test_func(self):
         return self.request.user.groups.filter(name="Librarians").exists()
@@ -447,21 +450,6 @@ def search_users(request):
     ], safe=False)
 
 @login_required
-def borrow_item(request, equipment_id):
-    equipment = get_object_or_404(Equipment, id=equipment_id)
-    if equipment.is_available:
-        equipment.is_available = False
-        equipment.save()
-        #We create a loan record (default return a week later for now)
-        Loan.objects.create(
-            user=request.user,
-            equipment=equipment,
-            borrowedAt=timezone.now(),
-            returnDate=timezone.now() + timedelta(days=7)
-        )
-    return redirect('core:catalog')
-
-@login_required
 def add_item_to_collection(request, item_id):
     if request.method == 'POST':
         item = get_object_or_404(Equipment, id=item_id)
@@ -509,3 +497,76 @@ def deny_access_request(request, collection_id, user_id):
 
     return redirect('core:dashboard') 
 
+@login_required
+def request_borrow_item(request, equipment_id):
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+
+    #Prevent multiple requests
+    existing = BorrowRequest.objects.filter(item=equipment, patron=request.user, status='pending').exists()
+    if not equipment.is_available:
+        messages.error(request, "This item is not available.")
+    elif existing:
+        messages.warning(request, "You already have a pending request for this item.")
+    else:
+        BorrowRequest.objects.create(item=equipment, patron=request.user)
+        #Notify all librarians
+        librarians = User.objects.filter(profile__is_librarian=True)
+        for librarian in librarians:
+            Notification.objects.create(
+                user=librarian,
+                message=f"📥 {request.user.username} requested to borrow '{equipment.name}'."
+            )
+        messages.success(request, "Borrow request submitted. A librarian will review it soon.")
+
+    return redirect("core:catalog")
+
+@login_required
+def approve_borrow_request(request, request_id):
+    borrow_request = get_object_or_404(BorrowRequest, id=request_id)
+
+    if not request.user.profile.is_librarian:
+        return HttpResponseForbidden("Only librarians can approve requests.")
+
+    #Approve the request
+    borrow_request.status = "approved"
+    borrow_request.reviewed_by = request.user
+    borrow_request.decision_time = timezone.now()
+    borrow_request.save()
+    #Update the item
+    equipment = borrow_request.item
+    equipment.is_available = False
+    equipment.status = "in-circulation"
+    equipment.save()
+
+    Notification.objects.create(
+        user=borrow_request.patron,
+        message=f"Your request to borrow '{borrow_request.item.name}' was approved!"
+    )
+    #Create the loan
+    Loan.objects.create(
+        user=borrow_request.patron,
+        equipment=equipment,
+        borrowedAt=timezone.now(),
+        returnDate=timezone.now() + timedelta(days=7)
+    )
+    messages.success(request, f"Approved {borrow_request.patron.username}'s request for {equipment.name}.")
+    return redirect("core:librarian")
+
+@login_required
+def deny_borrow_request(request, request_id):
+    borrow_request = get_object_or_404(BorrowRequest, id=request_id)
+
+    if not request.user.profile.is_librarian:
+        return HttpResponseForbidden("Only librarians can deny requests.")
+
+    borrow_request.status = "denied"
+    borrow_request.reviewed_by = request.user
+    borrow_request.decision_time = timezone.now()
+    borrow_request.save()
+
+    Notification.objects.create(
+        user=borrow_request.patron,
+        message=f"Your request to borrow '{borrow_request.item.name}' was denied."
+    )
+    messages.info(request, f"Denied {borrow_request.patron.username}'s request for {borrow_request.item.name}.")
+    return redirect("core:librarian")

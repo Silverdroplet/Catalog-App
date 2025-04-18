@@ -5,7 +5,8 @@ from .views import (
     PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
     add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, 
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection, 
-    equipment_details_sidebar, search_users, borrow_item, add_item_to_collection, return_item, deny_access_request
+    equipment_details_sidebar, search_users, add_item_to_collection, return_item, deny_access_request, request_borrow_item,
+    approve_borrow_request, deny_borrow_request
 )
 
 app_name = "core"
@@ -35,7 +36,9 @@ urlpatterns = [
     path('collections/delete/<int:collection_id>/', delete_collection, name='delete_collection'),
     path('equipment/details/<int:item_id>/', equipment_details_sidebar, name='equipment_details_sidebar'),
     path('librarians/api/search-users/', search_users, name='search_users'),
-    path('equipment/<int:equipment_id>/borrow/', borrow_item, name='borrow_item'),
     path('catalog/<int:item_id>/add-to-collection/', add_item_to_collection, name='add_item_to_collection'),
     path('equipment/<int:equipment_id>/return/', return_item, name='return_item'),
+    path('equipment/<int:equipment_id>/request/', request_borrow_item, name='request_borrow_item'),
+    path('borrow-request/<int:request_id>/approve/', approve_borrow_request, name='approve_borrow_request'),
+    path('borrow-request/<int:request_id>/deny/', deny_borrow_request, name='deny_borrow_request'),
 ]

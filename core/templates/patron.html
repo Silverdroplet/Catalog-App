@@ -32,10 +32,13 @@
             <h4 class="mb-0">Messages Inbox</h4>
           </div>
           <div class="card-body">
-            {% if messages %}
+            {% if notifications %}
               <ul class="list-group">
-                {% for message in messages %}
-                  <li class="list-group-item">{{ message }}</li>
+                {% for note in notifications %}
+                  <li class="list-group-item">
+                    {{ note.message }}<br>
+                    <small class="text-muted">{{ note.created_at|naturaltime }}</small>
+                  </li>
                 {% endfor %}
               </ul>
             {% else %}

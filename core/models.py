@@ -133,3 +133,27 @@ class CollectionAccessRequest(models.Model):
 
     def __str__(self):
         return f"{self.user.username} requested access to {self.collection.title}"
+    
+class BorrowRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('denied', 'Denied'),
+    ]
+    item = models.ForeignKey(Equipment, on_delete=models.CASCADE)
+    patron = models.ForeignKey(User, on_delete=models.CASCADE, related_name='borrow_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
+
+    def __str__(self):
+        return f"{self.patron.username} requested {self.item.name} ({self.status})"
+    
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:40]}"
