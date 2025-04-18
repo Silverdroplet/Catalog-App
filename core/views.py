@@ -589,7 +589,7 @@ def create_librarian_request(request):
             for librarian in librarians:
                 Notification.objects.create(
                     user = librarian,
-                    message=f"{request.user.username} requested to be a librarian."
+                    message=f"📥 {request.user.username} requested to be a librarian."
                 )
             messages.success(request, "Request to be a librarian submitted. A librarian will review it soon.")
 

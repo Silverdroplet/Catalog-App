@@ -26,11 +26,11 @@
         
         {% if user_request %}
           {% if user_request.status == "pending" %}
-          <button class="btn btn-secondary" disabled>Request Pending</button>
+          <button class="btn btn-secondary" disabled>Librarian Request Pending</button>
           {% elif user_request.status == "denied" %}
-              <button class="btn btn-danger" disabled>Request Denied</button>
+              <button class="btn btn-danger" disabled>Librarian Request Denied</button>
           {% else %}
-              <button class="btn btn-success" disabled>Already Approved</button>
+              <button class="btn btn-success" disabled>Librarian Request Already Approved</button>
           {% endif %}
         {% else %}
           <form method="POST" action="{% url 'core:request-librarian'%}">
