@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'storages',
     "core",
-    "widget_tweaks",
 ]
 
 AUTHENTICATION_BACKENDS = (
