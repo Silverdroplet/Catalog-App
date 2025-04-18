@@ -7,7 +7,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.template.loader import render_to_string
-from .models import Equipment, Profile, Review, Collection, User, Loan
+from .models import Equipment, Profile, Review, Collection, User, Loan, LibrarianRequests
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
 from .models import Collection, CollectionAccessRequest, BorrowRequest, Notification
@@ -88,6 +88,7 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         context["notifications"] = Notification.objects.filter(user=user).order_by("-created_at")[:10]
+        context["user_request"] = LibrarianRequests.objects.filter(patron=user).order_by('-timestamp').first()
         return context
     
     def test_func(self):
@@ -573,3 +574,23 @@ def deny_borrow_request(request, request_id):
     )
     messages.info(request, f"Denied {borrow_request.patron.username}'s request for {borrow_request.item.name}.")
     return redirect("core:librarian")
+
+@login_required
+def create_librarian_request(request):
+    if request.method == "POST":
+        existing = LibrarianRequests.objects.filter(patron=request.user, status='pending').first()
+
+        if existing:
+            messages.warning(request, "You already have a pending librarian request")
+        else:
+            LibrarianRequests.objects.create(patron=request.user)
+            #Notify all librarians
+            librarians = User.objects.filter(profile__is_librarian = True)
+            for librarian in librarians:
+                Notification.objects.create(
+                    user = librarian,
+                    message=f"{request.user.username} requested to be a librarian."
+                )
+            messages.success(request, "Request to be a librarian submitted. A librarian will review it soon.")
+
+        return redirect("core:patron")

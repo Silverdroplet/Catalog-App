@@ -23,6 +23,24 @@
         </p>
         <p class="text-muted">Your email: {{ profile.user.email }}</p>
         <p class="text-muted">Joined: {{ profile.joined_date }}</p>
+        
+        {% if user_request %}
+          {% if user_request.status == "pending" %}
+          <button class="btn btn-secondary" disabled>Request Pending</button>
+          {% elif user_request.status == "denied" %}
+              <button class="btn btn-danger" disabled>Request Denied</button>
+          {% else %}
+              <button class="btn btn-success" disabled>Already Approved</button>
+          {% endif %}
+        {% else %}
+          <form method="POST" action="{% url 'core:request-librarian'%}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Request to be a Librarian</button>
+          </form>
+          {% endif %}
+
+        <p id="librarian-request-msg" class="mt-2 text-end"></p>
+
       </div>
 
       <!-- Right Column: Messages Inbox, Equipment Table, and Action Buttons -->
@@ -80,8 +98,10 @@
           <a href="{% url 'core:add_collection' %}" class="btn btn-primary m-2">
             Add to Collection
           </a>
+          
         </div>
       </div>
     </div>
   </div>
 {% endblock %}
+
