@@ -1,15 +1,92 @@
+{# templates/add_equipment.html #}
 {% extends "base.html" %}
 
 {% block title %}Add New Equipment{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <h1 class="mb-4">Add New Equipment</h1>
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Equipment</button>
-  </form>
-  <a href="{% url 'core:catalog' %}" class="btn btn-link mt-3">Back to Catalog</a>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title mb-4 text-center">Add New Equipment</h2>
+
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {# Render each field inside a Bootstrap .form-group #}
+            <div class="form-group mb-3">
+              {{ form.name.label_tag }}
+              {{ form.name }}
+              {% for err in form.name.errors %}
+                <small class="text-danger">{{ err }}</small>
+              {% endfor %}
+            </div>
+
+            <div class="form-group mb-3">
+              {{ form.identifier.label_tag }}
+              {{ form.identifier }}
+              {% for err in form.identifier.errors %}
+                <small class="text-danger">{{ err }}</small>
+              {% endfor %}
+            </div>
+
+            <div class="form-group mb-3">
+              {{ form.description.label_tag }}
+              {{ form.description }}
+              {% for err in form.description.errors %}
+                <small class="text-danger">{{ err }}</small>
+              {% endfor %}
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_available }}
+              {{ form.is_available.label_tag }}
+              {% for err in form.is_available.errors %}
+                <small class="text-danger d-block">{{ err }}</small>
+              {% endfor %}
+            </div>
+
+            <div class="row gx-3 mb-3">
+              <div class="col-6">
+                <div class="form-group">
+                  {{ form.status.label_tag }}
+                  {{ form.status }}
+                  {% for err in form.status.errors %}
+                    <small class="text-danger">{{ err }}</small>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  {{ form.location.label_tag }}
+                  {{ form.location }}
+                  {% for err in form.location.errors %}
+                    <small class="text-danger">{{ err }}</small>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group mb-4">
+              {{ form.sports_type.label_tag }}
+              {{ form.sports_type }}
+              {% for err in form.sports_type.errors %}
+                <small class="text-danger">{{ err }}</small>
+              {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Add Equipment</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="{% url 'core:catalog' %}" class="text-decoration-none">&larr; Back to Catalog</a>
+      </div>
+
+    </div>
+  </div>
 </div>
 {% endblock %}
