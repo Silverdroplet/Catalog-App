@@ -213,7 +213,7 @@
 
             {% if user.is_authenticated %}
                 {% if user.profile.profile_picture %} 
-                 <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic mr-3" width="30">
+                 <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic mr-3">
                 {% endif %}
                  <li class="nav-item">
                    <form action="{% url 'core:logout' %}" method="post" class="form-inline my-2 my-lg-0">
