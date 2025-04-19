@@ -121,7 +121,7 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         if self.request.user.is_authenticated:
             return redirect('core:patron')
         return redirect('core:home')
-    
+        
 @login_required
 def upload_profile_picture(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
@@ -646,5 +646,18 @@ def deny_librarian_request(request, request_id):
     
     messages.info(request, f"Denied {librarian_request.patron.username}'s request to be a librarian.")
     return redirect("core:librarian")
+
+@login_required
+def past_librarian_requests(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view past librarian requests.")
+    
+    past_denied_requests = LibrarianRequests.objects.filter(status="denied")
+    past_approved_requests = LibrarianRequests.objects.filter(status="approved")
+
+    return render(request, 'past_librarian_requests.html', {
+        'past_denied_requests': past_denied_requests,
+        'past_approved_requests': past_approved_requests
+    })
 
 

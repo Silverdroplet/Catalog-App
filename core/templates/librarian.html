@@ -68,9 +68,18 @@
             {% endif %}
           </div>
         </div>
+                  
+      </div>
+    </div>
+  </div>
 
+  <div class="container-fluid content-wrapper ml-3 mb-3">
+    <div class="row">
+
+      <div class="col-md-8 mb-4">
         <!-- Pending Librarian Requests -->
         <h2>Pending Librarian Requests</h2>
+        <a href="{% url 'core:past-librarian-requests'%}" class="">Find past librarian requests here</a>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -96,51 +105,46 @@
             {% endfor %}
           </tbody>
         </table>
-
-        <div class="row">
-          <!-- Pending Borrow Requests -->
-          <div class="col-md-6 mb-4">
-            <h2>Pending Borrow Requests</h2>
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Patron</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for request in borrow_requests %}
-                  <tr>
-                    <td>{{ request.equipment.name }}</td>
-                    <td>{{ request.patron.username }}</td>
-                    <td>
-                      <a href="{% url 'core:approve_borrow_request' request.id %}" class="btn btn-success btn-sm me-1">Approve</a>
-                      <a href="{% url 'core:deny_borrow_request' request.id %}" class="btn btn-danger btn-sm">Deny</a>
-                    </td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="3">No pending borrow requests.</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Equipment & Collections Management -->
-          <div class="col-md-6">
-            <h2>Manage Equipment</h2>
-            <a href="{% url 'core:add_equipment' %}" class="btn btn-primary mb-3">Add New Equipment</a>
-            
-            <h2>Collections</h2>
-            <!-- Only the Add New Collection button is available now -->
-            <a href="{% url 'core:add_collection' %}" class="btn btn-primary">Add New Collection</a>
-            <a href="{% url 'core:my_collections' %}" class="btn btn-primary">View My Collections</a>
-          </div>
-        </div>
+        <!-- Pending Borrow Requests -->
+        <h2>Pending Borrow Requests</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Patron</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for request in borrow_requests %}
+              <tr>
+                <td>{{ request.equipment.name }}</td>
+                <td>{{ request.patron.username }}</td>
+                <td>
+                  <a href="{% url 'core:approve_borrow_request' request.id %}" class="btn btn-success btn-sm me-1">Approve</a>
+                  <a href="{% url 'core:deny_borrow_request' request.id %}" class="btn btn-danger btn-sm">Deny</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="3">No pending borrow requests.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Equipment & Collections Management -->
+      <div class="col-md-4">
+        <h2>Manage Equipment</h2>
+        <a href="{% url 'core:add_equipment' %}" class="btn btn-primary mb-3">Add New Equipment</a>
         
+        <h2>Collections</h2>
+        <!-- Only the Add New Collection button is available now -->
+        <a href="{% url 'core:add_collection' %}" class="btn btn-primary">Add New Collection</a>
+        <a href="{% url 'core:my_collections' %}" class="btn btn-primary">View My Collections</a>
       </div>
     </div>
+
   </div>
 {% endblock %}
