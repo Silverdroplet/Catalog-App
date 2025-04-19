@@ -12,7 +12,7 @@
       <!-- Left Column: Profile Picture and Details -->
       <div class="col-md-4 col-lg-4 text-center p-4 border-end">
         {% if profile.profile_picture %}
-          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150" height="150">
+          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="main-profile-pic mb-3" width="150" height="150">
         {% else %}
           <p>No image</p>
         {% endif %}
@@ -21,6 +21,7 @@
             Change Profile Picture
           </a>
         </p>
+        <p class="text-muted">Your username: {{profile.user.username}}</p>
         <p class="text-muted">Your email: {{ profile.user.email }}</p>
         <p class="text-muted">Joined: {{ profile.joined_date }}</p>
         
