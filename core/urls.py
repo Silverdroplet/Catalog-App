@@ -1,12 +1,12 @@
 from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from .views import (
-    HomeView, CatalogView, CustomLoginView, dashboard_redirect,
+    HomeView, CatalogView, CustomLoginView, create_librarian_request, dashboard_redirect,
     PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
     add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, 
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection, 
     equipment_details_sidebar, search_users, add_item_to_collection, return_item, deny_access_request, request_borrow_item,
-    approve_borrow_request, deny_borrow_request
+    approve_borrow_request, deny_borrow_request, approve_librarian_request,deny_librarian_request, past_librarian_requests
 )
 
 app_name = "core"
@@ -19,7 +19,11 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(next_page="core:home"), name="logout"),
     path("dashboard/", dashboard_redirect, name="dashboard"),
     path("dashboard/patron/", PatronDashboardView.as_view(), name="patron"),
+    path('dashboard/librarian-request/', create_librarian_request, name='request-librarian'),
+    path("dashboard/librarian-request/<int:request_id>/approve", approve_librarian_request, name='approve_librarian_request'),    
+    path("dashboard/librarian-request/<int:request_id>/deny", deny_librarian_request, name='deny_librarian_request'),    
     path("dashboard/librarian/", LibrarianDashboardView.as_view(), name="librarian"),
+    path('dashboard/librarian-request/past-requests', past_librarian_requests, name='past-librarian-requests'),
     path("dashboard/upload-profile-picture/", upload_profile_picture, name="upload_profile_picture"),
     path("dashboard/librarian/add-equipment/", add_equipment, name="add_equipment"),
     path("dashboard/librarian/edit-equipment/<int:equipment_id>/", edit_equipment, name="edit_equipment"),

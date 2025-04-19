@@ -12,7 +12,7 @@
       <!-- Left Column: Profile Picture and Details -->
       <div class="col-md-4 col-lg-4 text-center p-4 border-end">
         {% if profile.profile_picture %}
-          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle mb-3" width="150" height="150">
+          <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="main-profile-pic mb-3" width="150" height="150">
         {% else %}
           <p>No image</p>
         {% endif %}
@@ -21,8 +21,27 @@
             Change Profile Picture
           </a>
         </p>
+        <p class="text-muted">Your username: {{profile.user.username}}</p>
         <p class="text-muted">Your email: {{ profile.user.email }}</p>
         <p class="text-muted">Joined: {{ profile.joined_date }}</p>
+        
+        {% if user_request %}
+          {% if user_request.status == "pending" %}
+          <button class="btn btn-secondary" disabled>Librarian Request Pending</button>
+          {% elif user_request.status == "denied" %}
+              <button class="btn btn-danger" disabled>Librarian Request Denied</button>
+          {% else %}
+              <button class="btn btn-success" disabled>Librarian Request Already Approved</button>
+          {% endif %}
+        {% else %}
+          <form method="POST" action="{% url 'core:request-librarian'%}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Request to be a Librarian</button>
+          </form>
+          {% endif %}
+
+        <p id="librarian-request-msg" class="mt-2 text-end"></p>
+
       </div>
 
       <!-- Right Column: Messages Inbox, Equipment Table, and Action Buttons -->
@@ -80,8 +99,10 @@
           <a href="{% url 'core:add_collection' %}" class="btn btn-primary m-2">
             Add to Collection
           </a>
+          
         </div>
       </div>
     </div>
   </div>
 {% endblock %}
+

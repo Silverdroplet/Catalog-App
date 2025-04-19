@@ -148,6 +148,20 @@ class BorrowRequest(models.Model):
 
     def __str__(self):
         return f"{self.patron.username} requested {self.item.name} ({self.status})"
+
+class LibrarianRequests(models.Model):
+    STATUS_CHOICES= [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('denied', 'Denied'),
+    ]
+    patron = models.ForeignKey(User, on_delete=models.CASCADE, related_name='librarian_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='review_librarian')
+
+    def __str__(self):
+        return f"{self.patron.username} requested to be a librarian"
     
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")

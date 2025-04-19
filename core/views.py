@@ -1,4 +1,5 @@
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404, render
@@ -7,7 +8,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.template.loader import render_to_string
-from .models import Equipment, Profile, Review, Collection, User, Loan
+from .models import Equipment, Profile, Review, Collection, User, Loan, LibrarianRequests
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
 from .models import Collection, CollectionAccessRequest, BorrowRequest, Notification
@@ -88,6 +89,7 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         context["notifications"] = Notification.objects.filter(user=user).order_by("-created_at")[:10]
+        context["user_request"] = LibrarianRequests.objects.filter(patron=user).order_by('-timestamp').first()
         return context
     
     def test_func(self):
@@ -109,6 +111,7 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         context["collections"] = Collection.objects.filter(creator=user)
+        context["librarian_requests"] = LibrarianRequests.objects.filter(status="pending")
         context["borrow_requests"] = BorrowRequest.objects.filter(status="pending")
         context["notifications"] = Notification.objects.filter(user=user).order_by("-created_at")[:10]
         return context
@@ -118,7 +121,7 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         if self.request.user.is_authenticated:
             return redirect('core:patron')
         return redirect('core:home')
-    
+        
 @login_required
 def upload_profile_picture(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
@@ -573,3 +576,88 @@ def deny_borrow_request(request, request_id):
     )
     messages.info(request, f"Denied {borrow_request.patron.username}'s request for {borrow_request.item.name}.")
     return redirect("core:librarian")
+
+@login_required
+def create_librarian_request(request):
+    if request.method == "POST":
+        existing = LibrarianRequests.objects.filter(patron=request.user, status='pending').first()
+
+        if existing:
+            messages.warning(request, "You already have a pending librarian request")
+        else:
+            LibrarianRequests.objects.create(patron=request.user)
+            #Notify all librarians
+            librarian_group = Group.objects.get(name="Librarians")
+            librarians = librarian_group.user_set.all()
+            for librarian in librarians:
+                Notification.objects.create(
+                    user = librarian,
+                    message=f"📥 {request.user.username} requested to be a librarian."
+                )
+            messages.success(request, "Request to be a librarian submitted. A librarian will review it soon.")
+
+        return redirect("core:patron")
+
+@login_required
+def approve_librarian_request(request, request_id):
+    librarian_request = get_object_or_404(LibrarianRequests, id=request_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can approve librarian requests.")
+    
+    #approve the request
+    librarian_request.status = "approved"
+    librarian_request.reviewed_by = request.user
+    librarian_request.timestamp = timezone.now()
+    librarian_request.save()
+
+    #upgrade patron to librarian
+    librarian_group, created = Group.objects.get_or_create(name="Librarians")
+    patron_group, created = Group.objects.get_or_create(name="Patrons")
+    librarian_request.patron.groups.add(librarian_group)
+    librarian_request.patron.groups.remove(patron_group)
+    librarian_request.patron.save()
+
+    #notify patron
+    Notification.objects.create(
+        user = librarian_request.patron,
+        message=f"Your request to be a librarian was approved!"
+    )
+
+    messages.success(request, f"Approved {librarian_request.patron.username}'s request to be a librarian.")
+    return redirect("core:librarian")
+
+@login_required
+def deny_librarian_request(request, request_id):
+    librarian_request = get_object_or_404(LibrarianRequests, id=request_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can deny librarian requests.")
+    
+    librarian_request.status = "denied"
+    librarian_request.reviewed_by = request.user
+    librarian_request.timestamp = timezone.now()
+    librarian_request.save()
+
+    Notification.objects.create(
+        user=librarian_request.patron,
+        message=f"Your request to be a librarian was denied."
+    )
+    
+    messages.info(request, f"Denied {librarian_request.patron.username}'s request to be a librarian.")
+    return redirect("core:librarian")
+
+@login_required
+def past_librarian_requests(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view past librarian requests.")
+    
+    past_denied_requests = LibrarianRequests.objects.filter(status="denied")
+    past_approved_requests = LibrarianRequests.objects.filter(status="approved")
+
+    return render(request, 'past_librarian_requests.html', {
+        'past_denied_requests': past_denied_requests,
+        'past_approved_requests': past_approved_requests
+    })
+
+
