@@ -68,6 +68,34 @@
           </div>
         </div>
 
+        <!-- Pending Librarian Requests -->
+        <h2>Pending Librarian Requests</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Patron Username</th>
+              <th>Patron Email</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for request in librarian_requests %}
+              <tr>
+                <td>{{ request.patron.username }}</td>
+                <td>{{ request.patron.email }}</td>
+                <td>
+                  <a href="{% url 'core:approve_librarian_request' request.id%}" class="btn btn-success btn-sm me-1">Approve</a>
+                  <a href="{% url 'core:deny_librarian_request' request.id%}" class="btn btn-danger btn-sm">Deny</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="3">No pending borrow requests.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
         <div class="row">
           <!-- Pending Borrow Requests -->
           <div class="col-md-6 mb-4">

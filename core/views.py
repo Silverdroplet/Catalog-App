@@ -1,4 +1,5 @@
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404, render
@@ -110,6 +111,7 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
         context["collections"] = Collection.objects.filter(creator=user)
+        context["librarian_requests"] = LibrarianRequests.objects.filter(status="pending")
         context["borrow_requests"] = BorrowRequest.objects.filter(status="pending")
         context["notifications"] = Notification.objects.filter(user=user).order_by("-created_at")[:10]
         return context
@@ -585,7 +587,8 @@ def create_librarian_request(request):
         else:
             LibrarianRequests.objects.create(patron=request.user)
             #Notify all librarians
-            librarians = User.objects.filter(profile__is_librarian = True)
+            librarian_group = Group.objects.get(name="Librarians")
+            librarians = librarian_group.user_set.all()
             for librarian in librarians:
                 Notification.objects.create(
                     user = librarian,
@@ -594,3 +597,54 @@ def create_librarian_request(request):
             messages.success(request, "Request to be a librarian submitted. A librarian will review it soon.")
 
         return redirect("core:patron")
+
+@login_required
+def approve_librarian_request(request, request_id):
+    librarian_request = get_object_or_404(LibrarianRequests, id=request_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can approve librarian requests.")
+    
+    #approve the request
+    librarian_request.status = "approved"
+    librarian_request.reviewed_by = request.user
+    librarian_request.timestamp = timezone.now()
+    librarian_request.save()
+
+    #upgrade patron to librarian
+    librarian_group, created = Group.objects.get_or_create(name="Librarians")
+    patron_group, created = Group.objects.get_or_create(name="Patrons")
+    librarian_request.patron.groups.add(librarian_group)
+    librarian_request.patron.groups.remove(patron_group)
+    librarian_request.patron.save()
+
+    #notify patron
+    Notification.objects.create(
+        user = librarian_request.patron,
+        message=f"Your request to be a librarian was approved!"
+    )
+
+    messages.success(request, f"Approved {librarian_request.patron.username}'s request to be a librarian.")
+    return redirect("core:librarian")
+
+@login_required
+def deny_librarian_request(request, request_id):
+    librarian_request = get_object_or_404(LibrarianRequests, id=request_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can deny librarian requests.")
+    
+    librarian_request.status = "denied"
+    librarian_request.reviewed_by = request.user
+    librarian_request.timestamp = timezone.now()
+    librarian_request.save()
+
+    Notification.objects.create(
+        user=librarian_request.patron,
+        message=f"Your request to be a librarian was denied."
+    )
+    
+    messages.info(request, f"Denied {librarian_request.patron.username}'s request to be a librarian.")
+    return redirect("core:librarian")
+
+
