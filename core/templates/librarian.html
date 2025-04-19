@@ -107,6 +107,7 @@
         </table>
         <!-- Pending Borrow Requests -->
         <h2>Pending Borrow Requests</h2>
+        <a href="{% url 'core:librarian'%}" class="">Find past borrow requests here</a>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -118,7 +119,7 @@
           <tbody>
             {% for request in borrow_requests %}
               <tr>
-                <td>{{ request.equipment.name }}</td>
+                <td>{{ request.item.name }}</td>
                 <td>{{ request.patron.username }}</td>
                 <td>
                   <a href="{% url 'core:approve_borrow_request' request.id %}" class="btn btn-success btn-sm me-1">Approve</a>
