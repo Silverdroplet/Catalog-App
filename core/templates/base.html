@@ -171,6 +171,19 @@
     .hidden-entry {
       display: none !important;
     }
+
+    .scrollable-table-success thead th {
+        position: sticky;
+        top: 0;
+        background-color: #d1e7dd; /* Matches Bootstrap's table-success */
+        z-index: 1;
+    }
+    .scrollable-table-danger thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f5c6cb; /* Matches Bootstrap's table-success */
+        z-index: 1;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>

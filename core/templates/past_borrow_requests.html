@@ -14,6 +14,7 @@
   <div class="mb-5">
     <h4>Approved Requests</h4>
     {% if past_approved_requests %}
+    <div class= "scrollable-table-success" style="max-height: 440px; overflow-y: auto;">
       <table class="table table-bordered table-striped">
         <thead class="table-success">
           <tr>
@@ -38,6 +39,7 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
     {% else %}
       <p class="text-muted">No approved requests found.</p>
     {% endif %}
@@ -47,8 +49,9 @@
   <div class = "mb-5">
     <h4>Denied Requests</h4>
     {% if past_denied_requests %}
+    <div class= "scrollable-table-danger" style="max-height: 440px; overflow-y: auto;">
     <table class="table table-bordered table-striped">
-        <thead class="table-success">
+        <thead class="table-danger">
           <tr>
             <th>Patron</th>
             <th>Patron Email</th>
@@ -59,7 +62,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for request in past_approved_requests %}
+          {% for request in past_denied_requests %}
             <tr>
               <td>{{ request.patron.get_full_name|default:request.patron.username }} ({{request.patron.username}})</td>
               <td>{{ request.patron.email }}</td>
@@ -71,6 +74,7 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
     {% else %}
       <p class="text-muted">No denied requests found.</p>
     {% endif %}

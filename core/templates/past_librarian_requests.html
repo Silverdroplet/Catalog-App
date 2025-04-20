@@ -14,6 +14,7 @@
   <div class="mb-5">
     <h4>Approved Requests</h4>
     {% if past_approved_requests %}
+    <div class= "scrollable-table-success" style="max-height: 440px; overflow-y: auto;">
       <table class="table table-bordered table-striped">
         <colgroup>
             <col style="width: 25%;">
@@ -40,6 +41,7 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
     {% else %}
       <p class="text-muted">No approved requests found.</p>
     {% endif %}
@@ -49,6 +51,7 @@
   <div>
     <h4>Denied Requests</h4>
     {% if past_denied_requests %}
+    <div class= "scrollable-table-danger" style="max-height: 440px; overflow-y: auto;">
       <table class="table table-bordered table-striped">
         <colgroup>
             <col style="width: 25%;">
@@ -75,6 +78,7 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
     {% else %}
       <p class="text-muted">No denied requests found.</p>
     {% endif %}

@@ -566,7 +566,7 @@ def approve_borrow_request(request, request_id):
 def deny_borrow_request(request, request_id):
     borrow_request = get_object_or_404(BorrowRequest, id=request_id)
 
-    if not request.user.profile.is_librarian:
+    if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can deny requests.")
 
     borrow_request.status = "denied"
@@ -657,8 +657,8 @@ def past_librarian_requests(request):
     if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can view past librarian requests.")
     
-    past_denied_requests = LibrarianRequests.objects.filter(status="denied")
-    past_approved_requests = LibrarianRequests.objects.filter(status="approved")
+    past_denied_requests = LibrarianRequests.objects.filter(status="denied").order_by('-timestamp')
+    past_approved_requests = LibrarianRequests.objects.filter(status="approved").order_by('-timestamp')
 
     return render(request, 'past_librarian_requests.html', {
         'past_denied_requests': past_denied_requests,
@@ -678,8 +678,8 @@ def past_borrow_requests(request):
     if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can view past librarian requests.")
     
-    past_denied_requests = BorrowRequest.objects.filter(status="denied")
-    past_approved_requests = BorrowRequest.objects.filter(status="approved")
+    past_denied_requests = BorrowRequest.objects.filter(status="denied").order_by('-timestamp')
+    past_approved_requests = BorrowRequest.objects.filter(status="approved").order_by('-timestamp')
 
     return render(request, 'past_borrow_requests.html', {
         'past_denied_requests': past_denied_requests,
