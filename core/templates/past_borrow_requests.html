@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Past Borrow Requests{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'core:librarian' %}" class="btn btn-primary mb-3" role="button">
+        Return to dashboard</a>
+
+  <h2 class="mb-4">Past Borrow Requests</h2>
+
+  <!-- Approved Requests Table -->
+  <div class="mb-5">
+    <h4>Approved Requests</h4>
+    {% if past_approved_requests %}
+      <table class="table table-bordered table-striped">
+        <thead class="table-success">
+          <tr>
+            <th>Patron</th>
+            <th>Patron Email</th>
+            <th>Item Name</th>
+            <th>Item Identifier</th>
+            <th>Reviewed By</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for request in past_approved_requests %}
+            <tr>
+              <td>{{ request.patron.get_full_name|default:request.patron.username }} ({{request.patron.username}})</td>
+              <td>{{ request.patron.email }}</td>
+              <td>{{ request.item.name }}</td>
+              <td>{{ request.item.identifier }}</td>
+              <td>{{ request.reviewed_by.get_full_name|default:request.reviewed_by.username }} ({{request.reviewed_by.username}})</td>
+              <td>{{ request.timestamp|date:"F j, Y, g:i a" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No approved requests found.</p>
+    {% endif %}
+  </div>
+
+  <!-- Denied Requests Table -->
+  <div class = "mb-5">
+    <h4>Denied Requests</h4>
+    {% if past_denied_requests %}
+    <table class="table table-bordered table-striped">
+        <thead class="table-success">
+          <tr>
+            <th>Patron</th>
+            <th>Patron Email</th>
+            <th>Item Name</th>
+            <th>Item Identifier</th>
+            <th>Reviewed By</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for request in past_approved_requests %}
+            <tr>
+              <td>{{ request.patron.get_full_name|default:request.patron.username }} ({{request.patron.username}})</td>
+              <td>{{ request.patron.email }}</td>
+              <td>{{ request.item.name }}</td>
+              <td>{{ request.item.identifier }}</td>
+              <td>{{ request.reviewed_by.get_full_name|default:request.reviewed_by.username }} ({{request.reviewed_by.username}})</td>
+              <td>{{ request.timestamp|date:"F j, Y, g:i a" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No denied requests found.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
