@@ -480,6 +480,8 @@ def return_item(request, equipment_id):
     else:
         if loan:
             equipment.is_available = True
+            equipment.current_user = None
+            equipment.status = "checked-in"
             equipment.save()
             messages.success(request, f'You have successfully returned "{equipment.name}".')
             loan.delete()
@@ -542,6 +544,7 @@ def approve_borrow_request(request, request_id):
     equipment = borrow_request.item
     equipment.is_available = False
     equipment.status = "in-circulation"
+    equipment.current_user = borrow_request.patron
     equipment.save()
 
     Notification.objects.create(
@@ -616,6 +619,7 @@ def approve_librarian_request(request, request_id):
     patron_group, created = Group.objects.get_or_create(name="Patrons")
     librarian_request.patron.groups.add(librarian_group)
     librarian_request.patron.groups.remove(patron_group)
+    librarian_request.patron.profile__is_librarian = True
     librarian_request.patron.save()
 
     #notify patron

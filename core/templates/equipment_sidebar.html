@@ -11,17 +11,15 @@
 <p><strong>Sport:</strong> {{ item.sports_type|default:"N/A" }}</p>
 <p><strong>Status:</strong> {{ item.get_status_display }}</p>
 <p><strong>Available:</strong> {{ item.is_available|yesno:"✅ Yes,❌ No" }}</p>
-
 <!-- Request to Borrow Button -->
 {% if item.is_available %}
-    {% if user_request %}
-        {% if user_request.status == "pending" %}
-            <button class="btn btn-secondary" disabled>Request Pending</button>
-        {% elif user_request.status == "denied" %}
-            <button class="btn btn-danger" disabled>Request Denied</button>
-        {% else %}
+    {% if user_request.status == "pending" %}
+        <button class="btn btn-secondary" disabled>Request Pending</button>
+    {% elif user_request.status == "denied" %}
+        <button class="btn btn-danger" disabled>Request Denied</button>
+        <!-- Deprecated code for already approved requests
             <button class="btn btn-success" disabled>Already Approved</button>
-        {% endif %}
+          -->
     {% else %}
         <form method="POST" action="{% url 'core:request_borrow_item' item.id %}">
           {% csrf_token %}
