@@ -474,6 +474,7 @@ def add_item_to_collection(request, item_id):
 def return_item(request, equipment_id):
     equipment = get_object_or_404(Equipment, id=equipment_id)
     loan = Loan.objects.filter(equipment=equipment, user=request.user).order_by('-borrowedAt').first()
+
     if equipment.is_available:
         messages.error(request, "This item is still available.")
         return redirect('core:catalog')
@@ -488,8 +489,8 @@ def return_item(request, equipment_id):
         else:
             messages.error(request, "No loan record found for this item.")
 
-    return redirect('core:catalog')
-    
+    return redirect(request.META.get('HTTP_REFERER') or 'core:catalog')
+
 @login_required
 def deny_access_request(request, collection_id, user_id):
     collection = get_object_or_404(Collection, id=collection_id)
@@ -532,7 +533,7 @@ def request_borrow_item(request, equipment_id):
 def approve_borrow_request(request, request_id):
     borrow_request = get_object_or_404(BorrowRequest, id=request_id)
 
-    if not request.user.profile.is_librarian:
+    if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can approve requests.")
 
     #Approve the request
@@ -565,7 +566,7 @@ def approve_borrow_request(request, request_id):
 def deny_borrow_request(request, request_id):
     borrow_request = get_object_or_404(BorrowRequest, id=request_id)
 
-    if not request.user.profile.is_librarian:
+    if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can deny requests.")
 
     borrow_request.status = "denied"
@@ -656,12 +657,31 @@ def past_librarian_requests(request):
     if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can view past librarian requests.")
     
-    past_denied_requests = LibrarianRequests.objects.filter(status="denied")
-    past_approved_requests = LibrarianRequests.objects.filter(status="approved")
+    past_denied_requests = LibrarianRequests.objects.filter(status="denied").order_by('-timestamp')
+    past_approved_requests = LibrarianRequests.objects.filter(status="approved").order_by('-timestamp')
 
     return render(request, 'past_librarian_requests.html', {
         'past_denied_requests': past_denied_requests,
         'past_approved_requests': past_approved_requests
     })
 
+@login_required
+def my_equipment(request):
+    equipment = Equipment.objects.filter(current_user = request.user).prefetch_related('images')
 
+    return render(request, 'my_equipment.html', {
+        'equipment': equipment,
+    })
+
+@login_required
+def past_borrow_requests(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view past librarian requests.")
+    
+    past_denied_requests = BorrowRequest.objects.filter(status="denied").order_by('-timestamp')
+    past_approved_requests = BorrowRequest.objects.filter(status="approved").order_by('-timestamp')
+
+    return render(request, 'past_borrow_requests.html', {
+        'past_denied_requests': past_denied_requests,
+        'past_approved_requests': past_approved_requests
+    })

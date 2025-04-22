@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Equipment{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'core:patron' %}" class="btn btn-primary mb-3" role="button">
+        Return to dashboard</a>
+
+  <h2 class="mb-4">My Equipment</h2>
+
+  <!-- My Equipment Table -->
+  <div class="mb-5">
+    {% if equipment %}
+      <table class="table table-bordered table-striped">
+        <thead class="">
+          <tr>
+            <th>Name</th>
+            <th>Identifier</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Sports</th>
+            <th>Return the item?</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in equipment %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.identifer }}</td>
+              <td>{{ item.description }}</td>
+              <td>{{ item.location }}</td>
+              <td>{{ item.sports_type }}</td>
+              <td>
+                <form method="POST" action="{% url 'core:return_item' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Return Item</button>
+                  </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">You are currently not renting any equipment.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

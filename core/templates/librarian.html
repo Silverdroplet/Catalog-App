@@ -107,7 +107,7 @@
         </table>
         <!-- Pending Borrow Requests -->
         <h2>Pending Borrow Requests</h2>
-        <a href="{% url 'core:librarian'%}" class="">Find past borrow requests here</a>
+        <a href="{% url 'core:past_borrow_requests'%}" class="">Find past borrow requests here</a>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -139,6 +139,7 @@
       <div class="col-md-4">
         <h2>Manage Equipment</h2>
         <a href="{% url 'core:add_equipment' %}" class="btn btn-primary mb-3">Add New Equipment</a>
+        <a href="{% url 'core:my_equipment' %}" class="btn btn-primary mb-3">View My Equipment</a>
         
         <h2>Collections</h2>
         <!-- Only the Add New Collection button is available now -->

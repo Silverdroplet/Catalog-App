@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Past Librarian Requests{% endblock %}
+{% block title %}Past Borrow Requests{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <a href="{% url 'core:librarian' %}" class="btn btn-primary mb-3" role="button">
         Return to dashboard</a>
 
-  <h2 class="mb-4">Past Librarian Requests</h2>
+  <h2 class="mb-4">Past Borrow Requests</h2>
 
   <!-- Approved Requests Table -->
   <div class="mb-5">
@@ -16,16 +16,12 @@
     {% if past_approved_requests %}
     <div class= "scrollable-table-success" style="max-height: 440px; overflow-y: auto;">
       <table class="table table-bordered table-striped">
-        <colgroup>
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-          </colgroup>
         <thead class="table-success">
           <tr>
             <th>Patron</th>
-            <th>Email</th>
+            <th>Patron Email</th>
+            <th>Item Name</th>
+            <th>Item Identifier</th>
             <th>Reviewed By</th>
             <th>Date</th>
           </tr>
@@ -33,8 +29,10 @@
         <tbody>
           {% for request in past_approved_requests %}
             <tr>
-              <td>{{ request.patron.get_full_name|default:request.patron.username }}</td>
+              <td>{{ request.patron.get_full_name|default:request.patron.username }} ({{request.patron.username}})</td>
               <td>{{ request.patron.email }}</td>
+              <td>{{ request.item.name }}</td>
+              <td>{{ request.item.identifier }}</td>
               <td>{{ request.reviewed_by.get_full_name|default:request.reviewed_by.username }} ({{request.reviewed_by.username}})</td>
               <td>{{ request.timestamp|date:"F j, Y, g:i a" }}</td>
             </tr>
@@ -48,21 +46,17 @@
   </div>
 
   <!-- Denied Requests Table -->
-  <div>
+  <div class = "mb-5">
     <h4>Denied Requests</h4>
     {% if past_denied_requests %}
     <div class= "scrollable-table-danger" style="max-height: 440px; overflow-y: auto;">
-      <table class="table table-bordered table-striped">
-        <colgroup>
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-          </colgroup>
+    <table class="table table-bordered table-striped">
         <thead class="table-danger">
           <tr>
             <th>Patron</th>
-            <th>Email</th>
+            <th>Patron Email</th>
+            <th>Item Name</th>
+            <th>Item Identifier</th>
             <th>Reviewed By</th>
             <th>Date</th>
           </tr>
@@ -70,9 +64,11 @@
         <tbody>
           {% for request in past_denied_requests %}
             <tr>
-              <td>{{ request.patron.get_full_name|default:request.patron.username }}</td>
+              <td>{{ request.patron.get_full_name|default:request.patron.username }} ({{request.patron.username}})</td>
               <td>{{ request.patron.email }}</td>
-              <td>{{ request.reviewed_by.get_full_name|default:request.reviewed_by.username }} ({{request.reviewed_by.username}}) </td>
+              <td>{{ request.item.name }}</td>
+              <td>{{ request.item.identifier }}</td>
+              <td>{{ request.reviewed_by.get_full_name|default:request.reviewed_by.username }} ({{request.reviewed_by.username}})</td>
               <td>{{ request.timestamp|date:"F j, Y, g:i a" }}</td>
             </tr>
           {% endfor %}
