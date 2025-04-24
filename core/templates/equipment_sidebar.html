@@ -97,21 +97,29 @@
   {% endif %}
 </div>
 
-<h5 class="mt-3">
-  <a class="text-decoration-none text-dark d-flex align-items-center"
+<h5 class="mt-3 d-flex align-items-center">
+  <a class="text-decoration-none text-dark d-flex align-items-center flex-grow-1 position-relative"
      data-toggle="collapse"
      href="#collectSection"
      role="button"
      aria-expanded="false"
      aria-controls="collectSection">
     <span>Collections</span>
+
+    <i class="bi bi-question-circle-fill ml-2"
+       data-toggle="tooltip"
+       data-placement="top"
+       title="Collections help you organize and group related items for quick access."
+       onclick="event.stopPropagation(); event.preventDefault();"
+       style="color: #F84C1E;">
+    </i>
     <i class="ml-2 bi bi-chevron-down transition" id="caretIcon"></i>
   </a>
 </h5>
 
 <div class="collapse" id="collectSection">
   {% for collection in item.collections.all %}
-  {{ collection.title }}
+  <a class="text-decoration-none text-dark" href="{% url 'core:view_collection' collection.id %}">{{ collection.title }}</a>
   <br>
   {% endfor %}
 </div>
@@ -172,3 +180,8 @@
     <a href="{% url 'core:delete_equipment' item.id %}" class="btn btn-danger">Delete</a>
   </div>
 {% endif %}
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+</script>

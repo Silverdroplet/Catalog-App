@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+    .header-image {
+    background-image: url("{% static 'core/images/rotunda.jpg' %}");
+    background-size: cover;
+    background-position: center;
+    height: 200px; 
+}
+
+.header-image .overlay {
+    background-color: rgba(0, 0, 0, 0.5); 
+    top: 0;
+    left: 0;
+}
+</style>
+<div class="container-fluid p-0">
+    <div class="header-image position-relative text-white text-center">
+        <div class="overlay position-absolute w-100 h-100"></div>
+        <div class="position-relative py-5">
+            <b><h1 class="display-4">About Collections</h1></b>
+        </div>
+    </div>
+
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h1>What Are Collections?</h1>
+            <p>Collections help you organize and group related items for quick access.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <img src="{% static 'core/images/collections.png' %}" class="img-fluid" alt="Collections">
+        </div>
+    </div>
+    
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h1>How Do I Use Collections?</h1>
+            <p>[Add description or instructions here]</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <img src="{% static 'core/images/collections.png' %}" class="img-fluid" alt="Collections Instructions">
+        </div>
+    </div>
+    
+    <h1>Frequently Asked Questions</h1>
+    <p>[Add FAQs here]</p>
+</div>
+{% endblock %}

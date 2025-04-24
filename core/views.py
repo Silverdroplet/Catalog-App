@@ -685,3 +685,6 @@ def past_borrow_requests(request):
         'past_denied_requests': past_denied_requests,
         'past_approved_requests': past_approved_requests
     })
+
+def about_collections(request):
+    return render(request, 'about_collections.html')

@@ -37,7 +37,11 @@
           <div style="flex: 1;">
             <h5 class="mb-1">
               {{ item.name }}
-              <span class="badge bg-success">{{ item.status }}</span>
+              {% if item.status == 'checked-in' %}
+                <span class="badge bg-success">{{ item.status }}</span>
+              {% else %}
+                <span class="badge" style="background-color: #F84C1E;">{{ item.status }}</span>
+              {% endif %}
             </h5>
             <p class="mb-1"><strong>ID:</strong> {{ item.identifier }}</p>
             <p class="mb-1"><strong>Description:</strong> {{ item.description }}</p>
