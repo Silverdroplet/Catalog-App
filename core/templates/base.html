@@ -172,6 +172,19 @@
     .hidden-entry {
       display: none !important;
     }
+    
+    .scrollable-table-success thead th {
+        position: sticky;
+        top: 0;
+        background-color: #d1e7dd; /* Matches Bootstrap's table-success */
+        z-index: 1;
+    }
+    .scrollable-table-danger thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f5c6cb; /* Matches Bootstrap's table-success */
+        z-index: 1;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -222,6 +235,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                   <li><a class="dropdown-item" href="{% url 'core:patron' %}">My Dashboard</a></li>
+                  <li><a class="dropdown-item" href="{% url 'core:my_equipment' %}">My Equipment</a></li>
                   <li><a class="dropdown-item" href="{% url 'core:my_collections' %}">My Collections</a></li>
                   <div class="dropdown-divider"></div>
                   <li>
