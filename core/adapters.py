@@ -62,6 +62,13 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
            user.first_name = data.get("given_name", "")
            user.last_name = data.get("family_name", "")
            user.email = data.get("email", "")
+           if "@" in user.email:
+               if User.objects.filter(username=user.email.split("@")[0]).exists():
+                   user.username = user.username
+               else:
+                   user.username = user.email.split("@")[0]
+           else: 
+               user.username = user.username
 
 
            # Ensure profile exists

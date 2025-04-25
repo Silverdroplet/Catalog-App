@@ -1,8 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="ml-4 mr-4 mb-4">Collection Catalog</h1>
-
+<div class="d-flex justify-content-between align-items-center ml-4 mr-4 mb-4">
+    <div class="d-flex">
+      <h1 class="mb-0">Collection Catalog</h1>
+      <button class="btn btn-lg btn-link p-0 ml-2"
+        data-toggle="tooltip"
+        data-placement="top"
+        title="Collections help you organize and group related items for quick access.">
+        
+        <i class="bi bi-question-circle-fill" style="color: #F84C1E;"></i>
+    </button>
+    </div>
+    {% if request.user.is_authenticated %}
+      <a class="btn btn-primary btn-md" href="{% url 'core:add_collection' %}">Add a Collection!</a>
+    {% endif %}
+  </div>
 <!-- Search Form -->
 <form method="GET" action="{% url 'core:collection_catalog' %}" class="mb-4 ml-4 mr-4 d-flex">
     <input type="text" name="q" class="form-control me-2" placeholder="Search collections..." value="{{ query }}">
@@ -63,7 +76,7 @@
                         {% if request.user == collection.creator %}
                         <p class="text-muted">Visibility: Public (You own this collection)</p>
                         {% else %}
-                        <p class="text-muted">Visibility: Public</p>
+                        <p class="card-text">Created by {{collection.creator}}</p>
                         {% endif %}
                         <p class="card-text">Description: {{ collection.description }}</p>
 
@@ -90,7 +103,6 @@
                         {% endif %}
 
                     {% elif user.is_authenticated %}
-                        {# AUTHENTICATED USER VIEWING PRIVATE COLLECTION #}
                         {% if user in collection.allowed_users.all or collection.creator == request.user %}
                         {% if collection.image_list %}
                         <div id="carousel-{{ collection.id }}" class="carousel slide mb-3" data-bs-ride="carousel">
@@ -203,4 +215,11 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+</script>
 {% endblock %}
