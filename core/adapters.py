@@ -63,10 +63,12 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
            user.last_name = data.get("family_name", "")
            user.email = data.get("email", "")
            if "@" in user.email:
-               if User.objects.filter(username=user.email.split("@")[0]).exists():
-                   user.username = user.username
-               else:
-                   user.username = user.email.split("@")[0]
+               tempUser = user.email.split("@")[0] + str(random.randint(100, 999))
+               #alternate to use ascii characters
+               #tempUser = user.email.split("@")[0].join(random.choices(string.ascii_lowercase + string.digits, k=3))
+               while User.objects.filter(username=tempUser).exists():
+                   tempUser = tempUser + str(random.randint(1, 9))
+               user.username = tempUser
            else: 
                user.username = user.username
 
