@@ -2,15 +2,17 @@ from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from .views import (
     HomeView, CatalogView, CustomLoginView, create_librarian_request, dashboard_redirect,
-    PatronDashboardView, LibrarianDashboardView, upload_profile_picture, 
-    add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection, 
-    my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection, 
+    PatronDashboardView, LibrarianDashboardView, upload_profile_picture,
+    add_equipment, add_item_image, edit_equipment, delete_equipment, submit_review, add_collection,
+    my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection,
     equipment_details_sidebar, search_users, add_item_to_collection, return_item, deny_access_request, request_borrow_item,
     approve_borrow_request, deny_borrow_request, approve_librarian_request,deny_librarian_request, past_librarian_requests,
-    my_equipment, past_borrow_requests, about_collections
+    my_equipment, past_borrow_requests, about_collections, delete_item_image
 )
 
+
 app_name = "core"
+
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
@@ -48,5 +50,6 @@ urlpatterns = [
     path('borrow-request/<int:request_id>/approve/', approve_borrow_request, name='approve_borrow_request'),
     path('borrow-request/<int:request_id>/deny/', deny_borrow_request, name='deny_borrow_request'),
     path('dashboard/my_equipment', my_equipment, name='my_equipment'),
-    path('about/collections', about_collections, name='about_collecitons')
+    path('about/collections', about_collections, name='about_collecitons'),
+    path("equipment/<int:equipment_id>/delete/", delete_equipment, name="delete_equipment")
 ]

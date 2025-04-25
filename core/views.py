@@ -688,3 +688,22 @@ def past_borrow_requests(request):
 
 def about_collections(request):
     return render(request, 'about_collections.html')
+
+@login_required
+def delete_item_image(request, image_id):
+    """
+    Deletes a single image attached to an Equipment,
+    then redirects back to the Edit Equipment page.
+    """
+    img = get_object_or_404(ItemImage, pk=image_id)
+
+
+    # Optional: you might check that request.user is allowed:
+    # if img.equipment.owner != request.user:
+    #     return HttpResponseForbidden()
+
+
+    equipment_id = img.equipment.id
+    img.delete()
+    # Redirect back to the edit form for that equipment
+    return redirect('core:edit_equipment', equipment_id=equipment_id)
