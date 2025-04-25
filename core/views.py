@@ -8,7 +8,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.template.loader import render_to_string
-from .models import Equipment, Profile, Review, Collection, User, Loan, LibrarianRequests
+from .models import Equipment, Profile, Review, Collection, User, Loan, LibrarianRequests, EquipmentImage
 from .forms import ProfileForm, EquipmentForm, ItemImageForm, ReviewForm, CollectionForm
 from django.http import HttpResponseRedirect
 from .models import Collection, CollectionAccessRequest, BorrowRequest, Notification
@@ -691,19 +691,7 @@ def about_collections(request):
 
 @login_required
 def delete_item_image(request, image_id):
-    """
-    Deletes a single image attached to an Equipment,
-    then redirects back to the Edit Equipment page.
-    """
-    img = get_object_or_404(ItemImage, pk=image_id)
-
-
-    # Optional: you might check that request.user is allowed:
-    # if img.equipment.owner != request.user:
-    #     return HttpResponseForbidden()
-
-
+    img = get_object_or_404(EquipmentImage, pk=image_id)
     equipment_id = img.equipment.id
     img.delete()
-    # Redirect back to the edit form for that equipment
-    return redirect('core:edit_equipment', equipment_id=equipment_id)
+    return redirect("core:edit_equipment", equipment_id=equipment_id)

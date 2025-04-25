@@ -10,15 +10,17 @@
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
   }
+  .card-footer {
+    background-color: #fff;
+    border-top: 1px solid #e9ecef;
+  }
 </style>
 {% endblock %}
-
 
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-8">
-
 
       <!-- Header -->
       <div class="text-center mb-4">
@@ -28,8 +30,7 @@
         </p>
       </div>
 
-
-      <!-- Form Card -->
+      <!-- Edit Form -->
       <div class="card shadow-sm mb-5">
         <div class="card-body">
           <form method="post" enctype="multipart/form-data">
@@ -54,7 +55,6 @@
         </div>
       </div>
 
-
       <!-- Images Gallery -->
       <div class="mb-4">
         <h3 class="h5 mb-3">Current Images</h3>
@@ -62,13 +62,25 @@
           <div class="row g-3">
             {% for image in equipment.images.all %}
               <div class="col-6 col-md-3">
-                <div class="card shadow-sm">
-                  <img src="{{ image.image.url }}" class="card-img-top" alt="{{ equipment.name }}">
+                <div class="card shadow-sm h-100">
+                  <img src="{{ image.image.url }}"
+                       class="card-img-top"
+                       alt="{{ equipment.name }}">
                   {% if image.caption %}
                     <div class="card-body p-2 text-center">
                       <p class="small mb-2 text-muted">{{ image.caption }}</p>
                     </div>
                   {% endif %}
+                  <div class="card-footer text-center">
+                    <form method="post"
+                          action="{% url 'core:delete_item_image' image.id %}"
+                          onsubmit="return confirm('Delete this image?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-danger">
+                        Delete Image
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             {% endfor %}
@@ -78,20 +90,19 @@
         {% endif %}
       </div>
 
-
-      <!-- Actions -->
+      <!-- Bottom Actions -->
       <div class="d-flex justify-content-between">
         <a href="{% url 'core:add_item_image' equipment.id %}" class="btn btn-secondary">
           Add New Image
         </a>
-        <form method="post" action="{% url 'core:delete_equipment' equipment.id %}">
+        <form method="post" action="{% url 'core:delete_equipment' equipment.id %}"
+              onsubmit="return confirm('Delete entire equipment entry?');">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger">
             Delete Equipment
           </button>
         </form>
       </div>
-
 
     </div>
   </div>

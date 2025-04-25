@@ -51,5 +51,5 @@ urlpatterns = [
     path('borrow-request/<int:request_id>/deny/', deny_borrow_request, name='deny_borrow_request'),
     path('dashboard/my_equipment', my_equipment, name='my_equipment'),
     path('about/collections', about_collections, name='about_collecitons'),
-    path("equipment/<int:equipment_id>/delete/", delete_equipment, name="delete_equipment")
+    path("dashboard/librarian/delete-item-image/<int:image_id>/", delete_item_image, name="delete_item_image")
 ]
