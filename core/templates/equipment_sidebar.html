@@ -119,6 +119,8 @@
   {% for collection in item.collections.all %}
   <a class="text-decoration-none text-dark" href="{% url 'core:view_collection' collection.id %}">{{ collection.title }}</a>
   <br>
+  {% empty %}
+    <p>This item is not in any collection yet.</p>
   {% endfor %}
 </div>
 

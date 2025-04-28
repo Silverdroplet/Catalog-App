@@ -25,6 +25,13 @@
     </div>
   </div>
 
+  {% if user.is_authenticated %}
+  {% if user.profile.is_librarian %}
+  <a href="{% url 'core:add_equipment' %}" class="btn btn-primary mb-3">Add New Equipment</a>
+  {% endif %}
+  {% endif %}
+
+
 
   <div class="row">
     <!-- Left: Filters -->
@@ -129,6 +136,6 @@ function loadSidebar(itemId) {
 
 
 <div class="text-center mt-4">
-  <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg">Back to Home</a>
+  <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg mb-4">Back to Home</a>
 </div>
 {% endblock %}

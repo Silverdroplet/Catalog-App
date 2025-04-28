@@ -5,8 +5,6 @@
 
 {% block content %}
 <div class="container mt-5">
-    <a href="{% url 'core:patron' %}" class="btn btn-primary mb-3" role="button">
-        Return to dashboard</a>
 
   <h2 class="mb-4">My Equipment</h2>
 
@@ -46,6 +44,9 @@
       <p class="text-muted">You are currently not renting any equipment.</p>
     {% endif %}
   </div>
+
+  <a href="{% url 'core:patron' %}" class="btn btn-primary mb-3" role="button">
+    Return to dashboard</a>
 
 </div>
 {% endblock %}
