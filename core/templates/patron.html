@@ -15,7 +15,37 @@
     }
   </style>
 
-  <h1 class="mb-4">Welcome, {{ profile.user.get_full_name }}!</h1>
+<div class="d-flex justify-content-between align-items-center">
+  <div>
+    <h1 class="mb-4">Welcome, {{ profile.user.get_full_name }}!</h1>
+  </div>
+  
+  <div class="d-flex align-items-center mr-3">
+    {% if user_request %}
+      {% if user_request.status == "pending" %}
+        <button class="btn btn-secondary" disabled>Librarian Request Pending</button>
+      {% elif user_request.status == "denied" %}
+        <button class="btn btn-danger" disabled>Librarian Request Denied</button>
+      {% else %}
+        <button class="btn btn-success" disabled>Librarian Request Already Approved</button>
+      {% endif %}
+    {% else %}
+      <form method="POST" action="{% url 'core:request-librarian' %}" class="mb-0">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Request to be a Librarian</button>
+      </form>
+    {% endif %}
+    
+    <button class="btn btn-link ml-2 p-0"
+      data-toggle="tooltip"
+      data-placement="top"
+      title="Librarians have more permissions that Patrons. They can add equipment to the catalog, create private collections, and approve other Patrons to Librarians.">
+      <i class="bi bi-question-circle-fill" style="color:#F84C1E; font-size: 1.5rem;"></i>
+    </button>
+  </div>
+</div>
+
+
 
   <div class="container-fluid content-wrapper">
     <div class="row">
@@ -38,21 +68,6 @@
         <p class="text-muted">Your username: {{ profile.user.username }}</p>
         <p class="text-muted">Your email: {{ profile.user.email }}</p>
         <p class="text-muted">Joined: {{ profile.joined_date }}</p>
-
-        {% if user_request %}
-          {% if user_request.status == "pending" %}
-            <button class="btn btn-secondary" disabled>Librarian Request Pending</button>
-          {% elif user_request.status == "denied" %}
-            <button class="btn btn-danger" disabled>Librarian Request Denied</button>
-          {% else %}
-            <button class="btn btn-success" disabled>Librarian Request Already Approved</button>
-          {% endif %}
-        {% else %}
-          <form method="POST" action="{% url 'core:request-librarian' %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">Request to be a Librarian</button>
-          </form>
-        {% endif %}
 
         <p id="librarian-request-msg" class="mt-2 text-end"></p>
       </div>
@@ -82,33 +97,13 @@
           </div>
         </div>
 
-        <!-- Equipment Renting Table -->
-        <h2>Equipment You're Currently Renting</h2>
-        <table class="table table-striped w-100">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Condition</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for loan in equipment_list %}
-              <tr>
-                <td>{{ loan.equipment.name }}</td>
-                <td>{{ loan.equipment.status }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="2">You're not renting anything currently.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        
 
         <!-- Action Buttons Container: Aligned to the right with extra spacing -->
         <div class="d-flex justify-content-end gap-4 mt-3 w-100">
-          <a href="{% url 'core:catalog' %}" class="btn btn-primary m-2">
-            Browse Catalog
+
+          <a href="{% url 'core:my_equipment' %}" class="btn btn-primary m-2">
+            View My Equipment
           </a>
           <a href="{% url 'core:add_collection' %}" class="btn btn-primary m-2">
             Add to Collection
@@ -118,7 +113,7 @@
         data-placement="top"
         title="Collections help you organize and group related items for quick access.">
         
-        <i class="bi bi-question-circle-fill" style="color:#F84C1E;"></i>
+        <i class="bi bi-question-circle-fill" style="color:#F84C1E; font-size: 1.5rem;"></i>
         </div>
       </div>
     </div>
