@@ -15,8 +15,6 @@
 {% if item.is_available %}
     {% if user_request.status == "pending" %}
         <button class="btn btn-secondary" disabled>Request Pending</button>
-    {% elif user_request.status == "denied" %}
-        <button class="btn btn-danger" disabled>Request Denied</button>
         <!-- Deprecated code for already approved requests
             <button class="btn btn-success" disabled>Already Approved</button>
           -->
