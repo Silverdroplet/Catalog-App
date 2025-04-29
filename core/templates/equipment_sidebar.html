@@ -27,6 +27,8 @@
           </form>
       {% endif %}
   {% elif not item.is_available and loan and loan.user == request.user %}
+      Due: {{ loan.returnDate }}
+      
       <form method="POST" action="{% url 'core:return_item' item.id  %}?next={{ request.path }}">
         {% csrf_token %}
         <button type="submit" class="btn btn-success">Return Item</button>

@@ -75,7 +75,7 @@ class Equipment(models.Model):
     def save(self, *args, **kwargs):
         if not self.identifier:
             self.identifier = self.generate_unique_identifier()
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 class Review(models.Model):
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name="reviews")
