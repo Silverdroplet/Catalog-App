@@ -90,11 +90,13 @@
   <div class="mt-4">
     <button type="submit" class="btn btn-primary">Edit Collection</button>
   </div>
+  <div class="mt-4 mb-4">
+    <a href="{% url 'core:my_collections' %}" class="btn btn-secondary">Back to My Collections</a>
+
+  </div>
+
 </form>
 
-<div class="mt-3">
-  <a href="{% url 'core:my_collections' %}" class="btn btn-secondary">Back to My Collections</a>
-</div>
 
 <style>
   .hidden-entry {
