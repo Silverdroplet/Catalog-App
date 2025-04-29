@@ -15,10 +15,21 @@
     }
   </style>
 
+{% if profile.is_suspended %}
+  <div class="container">
+    <div class="alert alert-danger text-center mb-3 rounded">
+      ⚠️ <strong>Action Required:</strong> You have have been suspended due to overdue equipment. You will be unable to request to borrow items until you're unsuspended. Please return the equipment as soon as possible via 
+      <a href="{% url 'core:my_equipment' %}" class="alert-link">My Equipment</a>⚠️
+    </div>
+  </div>
+{% endif %}
+
 <div class="d-flex justify-content-between align-items-center">
   <div>
     <h1 class="mb-4">Welcome, {{ profile.user.get_full_name }}!</h1>
   </div>
+
+
   
   <div class="d-flex align-items-center mr-3">
     {% if user_request %}

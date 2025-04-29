@@ -89,7 +89,7 @@ class Review(models.Model):
     
 class Loan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name="loan")
     borrowedAt = models.DateTimeField(default=timezone.now)
     returnDate = models.DateTimeField()
 

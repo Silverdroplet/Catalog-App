@@ -143,19 +143,18 @@
             <td>
               <a href="{% url 'core:request_item_back' loan.id %}"
               class="btn btn-warning btn-sm me-1"
-              onclick="return confirm('Are you sure you want to request this item? This will send a message to the user currently loaning {{ loan.equipment.name|escapejs}} ');">
+              onclick="return confirm('Are you sure you want to request this equipment? This will send a message to the user currently loaning {{ loan.equipment.name|escapejs}} that you would like the equipment returned. ');">
               Request</a>
             </td>
             <td>
               {% if loan.user.profile.is_suspended %}
-                <p>User already suspended. Unsuspend users <a href="{% url 'core:suspended_users' %}">here.</a>
-                  .</p>
+                <p>User already suspended. Unsuspend users <a href="{% url 'core:suspended_users' %}">here</a>.</p>
               {% elif loan.user.profile.is_librarian %}
                 <p>Librarians cannot be suspended.</p>
               {% else %}
                 <a href="{% url 'core:suspend_user' loan.user.id %}"
                 class="btn btn-danger btn-sm me-1"
-                onclick="return confirm('Are you sure you want to suspend User {{ loan.user.get_full_name|escapejs}} ({{ loan.user.username|escapejs}})? This will prevent the user from borrowing any items and creating collections.');">
+                onclick="return confirm('Are you sure you want to suspend User {{ loan.user.get_full_name|escapejs}} ({{ loan.user.username|escapejs}})? This will prevent the user from requesting to borrow any items.');">
                 Suspend</a>
               {% endif %}
             </td>
@@ -163,7 +162,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="5">No overdue loans.</td>
+            <td colspan="6">No overdue loans.</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -172,6 +171,11 @@
         <h2>Pending Librarian Requests</h2>
         <a href="{% url 'core:past-librarian-requests' %}">Find past librarian requests here.</a>
         <table class="table table-striped">
+          <colgroup>
+            <col style="width: 35%;">
+            <col style="width: 35%;">
+            <col style="width: 30%;">
+          </colgroup>
           <thead>
             <tr>
               <th>Patron Username</th>
@@ -206,6 +210,11 @@
         <a href="{% url 'core:past_borrow_requests' %}">Find past borrow requests here.</a>
         
         <table class="table table-striped">
+          <colgroup>
+            <col style="width: 35%;">
+            <col style="width: 35%;">
+            <col style="width: 30%;">
+          </colgroup>
           <thead>
             <tr>
               <th>Item Name</th>

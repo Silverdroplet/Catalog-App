@@ -484,6 +484,7 @@ def add_item_to_collection(request, item_id):
 def return_item(request, equipment_id):
     equipment = get_object_or_404(Equipment, id=equipment_id)
     loan = Loan.objects.filter(equipment=equipment, user=request.user).order_by('-borrowedAt').first()
+    user = loan.user
 
     if equipment.is_available:
         messages.error(request, "This item is still available.")
@@ -499,12 +500,12 @@ def return_item(request, equipment_id):
         else:
             messages.error(request, "No loan record found for this item.")
         
-        overdue_loan_list = Loan.objects.filter(returnDate__lt=timezone.now())
+        overdue_loan_list = Loan.objects.filter(user=user, returnDate__lt=timezone.now())
 
         if not overdue_loan_list:
-            if loan.user.profile.is_suspended:
-                loan.user.profile.is_suspended = False
-                loan.user.profile.save()
+            if user.profile.is_suspended:
+                user.profile.is_suspended = False
+                user.profile.save()
                 
                 messages.success(request, f'You were successfully unsuspended after returning {equipment.name}.')
 
@@ -540,10 +541,13 @@ def request_borrow_item(request, equipment_id):
 
     #Prevent multiple requests
     existing = BorrowRequest.objects.filter(item=equipment, patron=request.user, status='pending').exists()
+
     if not equipment.is_available:
         messages.error(request, "This item is not available.")
     elif existing:
         messages.warning(request, "You already have a pending request for this item.")
+    elif request.user.profile.is_suspended:
+        messages.warning(request, "You are suspended. Suspended users cannot request to borrow items.")
     else:
         BorrowRequest.objects.create(item=equipment, patron=request.user)
         #Notify all librarians
@@ -733,6 +737,11 @@ def suspended_users(request):
 @login_required
 def my_equipment(request):
     equipment = Equipment.objects.filter(current_user = request.user).prefetch_related('images')
+    for item in equipment:
+        loan = Loan.objects.filter(equipment=item, user=request.user).first()
+        if loan:
+            item.borrowedAt = loan.borrowedAt
+            item.returnDate = loan.returnDate
 
     return render(request, 'my_equipment.html', {
         'equipment': equipment,
