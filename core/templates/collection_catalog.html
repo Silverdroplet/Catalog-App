@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <div class="d-flex justify-content-between align-items-center ml-4 mr-4 mb-4">
     <div class="d-flex">
-      <h1 class="mb-0">Collection Catalog</h1>
+      <h1 class="mb-0 text-center">Collection Catalog</h1>
       <button class="btn btn-lg btn-link p-0 ml-2"
         data-toggle="tooltip"
         data-placement="top"
@@ -11,16 +12,30 @@
         
         <i class="bi bi-question-circle-fill" style="color: #F84C1E;"></i>
     </button>
+    
     </div>
+
     {% if request.user.is_authenticated %}
-      <a class="btn btn-primary btn-md" href="{% url 'core:add_collection' %}">Add a Collection!</a>
-    {% endif %}
+    <a class="btn btn-primary btn-md" href="{% url 'core:add_collection' %}">Add a Collection!</a>
+        {% endif %}
+
   </div>
 <!-- Search Form -->
-<form method="GET" action="{% url 'core:collection_catalog' %}" class="mb-4 ml-4 mr-4 d-flex">
-    <input type="text" name="q" class="form-control me-2" placeholder="Search collections..." value="{{ query }}">
-    <button type="submit" class="btn btn-primary">Search</button>
-</form>
+<div class="container-fluid content-wrapper">
+    <div class="row">
+        <div class="col-md-6">
+            <form method="GET" action="{% url 'core:collection_catalog' %}" class="mb-4 ml-4 mr-4 d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Search collections..." value="{{ query }}">
+                <button type="submit" class="btn btn-primary ml-3">Search</button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-end">
+
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <div class="row">
