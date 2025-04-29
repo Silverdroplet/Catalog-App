@@ -17,7 +17,7 @@ class ProfileForm(forms.ModelForm):
 class EquipmentForm(forms.ModelForm):
     class Meta:
         model = Equipment
-        fields = ['name', 'identifier', 'description', 'is_available', 'status', 'location', 'sports_type']
+        fields = ['name', 'description', 'is_available', 'status', 'location', 'sports_type']
 
 class ItemImageForm(forms.ModelForm):
     class Meta:
