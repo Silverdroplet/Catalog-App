@@ -147,10 +147,16 @@
               Request</a>
             </td>
             <td>
-              <a href="{% url 'core:request_item_back' loan.id %}"
-              class="btn btn-warning btn-sm me-1"
-              onclick="return confirm('Are you sure you want to request this item? This will send a message to the user currently loaning {{ loan.equipment.name|escapejs}} ');">
-              Request</a>
+              {% if loan.user.profile.is_suspended %}
+                <p>User already suspended. Unsuspend users here.</p>
+              {% elif loan.user.profile.is_librarian %}
+                <p>Librarians cannot be suspended.</p>
+              {% else %}
+                <a href="{% url 'core:suspend_user' loan.user.id %}"
+                class="btn btn-danger btn-sm me-1"
+                onclick="return confirm('Are you sure you want to suspend User {{ loan.user.get_full_name|escapejs}} ({{ loan.user.username|escapejs}})? This will prevent the user from borrowing any items.');">
+                Suspend</a>
+              {% endif %}
             </td>
 
           </tr>
@@ -203,8 +209,7 @@
             <tr>
               <th>Item Name</th>
               <th>Patron</th>
-              <th>Approve</th>
-              <th>Deny</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -217,8 +222,6 @@
                   <button type="button" class="btn btn-success btn-sm me-1" data-bs-toggle="modal" data-bs-target="#loanDurationModal" data-request-id="{{ request.id }}">
                     Approve
                   </button>
-
-                <td>
                   <a href="{% url 'core:deny_borrow_request' request.id %}"
                      class="btn btn-danger btn-sm">Deny</a>
                 </td>

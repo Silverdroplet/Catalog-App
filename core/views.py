@@ -498,6 +498,24 @@ def return_item(request, equipment_id):
             loan.delete()
         else:
             messages.error(request, "No loan record found for this item.")
+        
+        overdue_loan_list = Loan.objects.filter(returnDate__lt=timezone.now())
+
+        if not overdue_loan_list:
+            if loan.user.profile.is_suspended:
+                loan.user.profile.is_suspended = False
+                loan.user.profile.save()
+                
+                messages.success(request, f'You were successfully unsuspended after returning {equipment.name}.')
+
+                #notify librarians that the user was unsuspended
+                librarians = User.objects.filter(profile__is_librarian=True)
+                for librarian in librarians:
+                    Notification.objects.create(
+                        user=librarian,
+                        message=f"{loan.user.username} was unsuspended after returning '{equipment.name}'."
+                    )
+
 
     return redirect(request.META.get('HTTP_REFERER') or 'core:catalog')
 
@@ -732,3 +750,28 @@ def request_item_back(request, loan_id):
     messages.info(request, f"Requested Equipment {loan.equipment.name} from {loan.user.username} ")
 
     return redirect("core:librarian")
+
+@login_required
+def suspend_user(request, user_id):
+    suspended_user = get_object_or_404(User, id=user_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can suspend users.")
+
+    if suspended_user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only patrons can be suspended.")
+
+    #suspend user
+    suspended_user.profile.is_suspended = True
+    suspended_user.profile.save()
+
+    Notification.objects.create(
+        user=suspended_user,
+        message=f"❗You have been suspended for overdue equipment loans. You will not be able to create/edit collections or request to borrow items. Return all overdue items to be unsuspended.❗" 
+    )
+
+    messages.info(request, f"Suspended {suspended_user.first_name} {suspended_user.last_name} ({suspended_user.username}) ")
+
+    return redirect("core:librarian")
+ 
+    
