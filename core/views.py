@@ -101,6 +101,7 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
 
 class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "librarian.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -110,7 +111,13 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context["username"] = user.email.split('@')[0] if user.email else user.username
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
-        context["overdue_loan_list"] = Loan.objects.filter(returnDate__lt=timezone.now())
+
+        overdue_loan_list = Loan.objects.filter(returnDate__lt=timezone.now())
+
+        for loan in overdue_loan_list:
+            loan.days_overdue = (timezone.now() - loan.returnDate).days
+
+        context["overdue_loan_list"] = overdue_loan_list
         #context["overdue_loan_list"] = Loan.objects.all()
         context["collections"] = Collection.objects.filter(creator=user)
         context["librarian_requests"] = LibrarianRequests.objects.filter(status="pending")
@@ -538,6 +545,18 @@ def approve_borrow_request(request, request_id):
 
     if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can approve requests.")
+    
+    days = request.GET.get('days')
+    if not days:
+        #default is 7 days
+        days = 7
+
+    try:
+        days = float(days)
+    except ValueError:
+        return HttpResponse("Invalid number of days.", status=400)
+
+    returnDate = timezone.now() + timedelta(days=days)
 
     #Approve the request
     borrow_request.status = "approved"
@@ -560,7 +579,7 @@ def approve_borrow_request(request, request_id):
         user=borrow_request.patron,
         equipment=equipment,
         borrowedAt=timezone.now(),
-        returnDate=timezone.now() + timedelta(days=7)
+        returnDate=returnDate
     )
     messages.success(request, f"Approved {borrow_request.patron.username}'s request for {equipment.name}.")
     return redirect("core:librarian")
@@ -698,3 +717,18 @@ def delete_item_image(request, image_id):
     equipment_id = img.equipment.id
     img.delete()
     return redirect("core:edit_equipment", equipment_id=equipment_id)
+
+@login_required
+def request_item_back(request, loan_id):
+    loan = get_object_or_404(Loan, id=loan_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can request items back.")
+
+    Notification.objects.create(
+        user=loan.user,
+        message=f"❗URGENT Librarian {request.user.first_name} {request.user.last_name} ({request.user.username}) has requested Equipment {loan.equipment.name} back. Return this item by going to the My Equipment page.❗" 
+    )
+    messages.info(request, f"Requested Equipment {loan.equipment.name} from {loan.user.username} ")
+
+    return redirect("core:librarian")

@@ -7,7 +7,7 @@ from .views import (
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection,
     equipment_details_sidebar, search_users, add_item_to_collection, return_item, deny_access_request, request_borrow_item,
     approve_borrow_request, deny_borrow_request, approve_librarian_request,deny_librarian_request, past_librarian_requests,
-    my_equipment, past_borrow_requests, about_collections, delete_item_image
+    my_equipment, past_borrow_requests, about_collections, delete_item_image, request_item_back
 )
 
 
@@ -51,5 +51,7 @@ urlpatterns = [
     path('borrow-request/<int:request_id>/deny/', deny_borrow_request, name='deny_borrow_request'),
     path('dashboard/my_equipment', my_equipment, name='my_equipment'),
     path('about/collections', about_collections, name='about_collecitons'),
-    path("dashboard/librarian/delete-item-image/<int:image_id>/", delete_item_image, name="delete_item_image")
+    path("dashboard/librarian/delete-item-image/<int:image_id>/", delete_item_image, name="delete_item_image"),
+    path('request-item/<int:loan_id>', request_item_back, name="request_item_back")
+
 ]

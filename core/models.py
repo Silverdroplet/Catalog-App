@@ -104,7 +104,8 @@ class Profile(models.Model):
         null=True
     )
     joined_date = models.DateTimeField(auto_now_add=True)
-    is_librarian = models.BooleanField(default=False) 
+    is_librarian = models.BooleanField(default=False)
+    is_suspended = models.BooleanField(default=False) 
 
     def __str__(self):
         return self.user.username
@@ -182,3 +183,4 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:40]}"
+    
