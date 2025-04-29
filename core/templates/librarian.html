@@ -92,6 +92,38 @@
     <div class="row">
 
       <div class="col-md-8 mb-4">
+        <!--Current Loans-->
+        <h2>Overdue Loans</h2>
+        <p>Monitor all equipment currently being lended out here.</p>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Equipment</th>
+              <th>Patron</th>
+              <th>Date Loaned Out</th>
+              <th>Days Overdue</th>
+              <th>Request Item Back</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loan in overdue_loan_list %}
+              <tr>
+                <td>{{ loan.equipment.name }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+
+                <td></td>
+
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5">No overdue loans.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
         <!-- Pending Librarian Requests -->
         <h2>Pending Librarian Requests</h2>
         <a href="{% url 'core:past-librarian-requests' %}">Find past librarian requests here</a>

@@ -110,6 +110,8 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context["username"] = user.email.split('@')[0] if user.email else user.username
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
+        context["overdue_loan_list"] = Loan.objects.filter(returnDate__lt=timezone.now())
+        #context["overdue_loan_list"] = Loan.objects.all()
         context["collections"] = Collection.objects.filter(creator=user)
         context["librarian_requests"] = LibrarianRequests.objects.filter(status="pending")
         context["borrow_requests"] = BorrowRequest.objects.filter(status="pending")
