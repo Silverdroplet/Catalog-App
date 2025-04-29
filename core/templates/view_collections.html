@@ -138,11 +138,17 @@
         {% endfor %}
 
         {% else %}
-        <p class="text-muted">You currently do not have any collections.</p>
+        <p class="text-muted ml-3 md-4">You currently do not have any collections.</p>
+
         {% endif %}
     </div>
 
-    <a href="{% url 'core:patron' %}" class="btn btn-primary mb-3" role="button">
+    <a href="{% url 'core:add_collection' %}" class="btn btn-primary m-2">
+        Add a New Collection
+    </a>
+
+
+    <a href="{% url 'core:patron' %}" class="btn btn-primary m-2" role="button">
         Return to dashboard</a>
     
 

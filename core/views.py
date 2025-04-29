@@ -252,6 +252,7 @@ def add_collection(request):
             collection.save()
             form.save_m2m() 
             librarian_users = User.objects.filter(profile__is_librarian=True)
+            collection.allowed_users.add(request.user)
             collection.allowed_users.add(*librarian_users)
             return redirect('core:view_collection', collection_id=collection.id)
     else:
