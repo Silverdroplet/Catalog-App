@@ -706,6 +706,31 @@ def past_librarian_requests(request):
     })
 
 @login_required
+def loan(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view past librarian requests.")
+    loan_list = Loan.objects.all()
+
+    for loan in loan_list:
+        loan.overdue = loan.returnDate < timezone.now()
+
+    return render(request, 'loans.html', {
+        'loan_list': loan_list
+    })
+
+@login_required
+def suspended_users(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view suspended users.")
+
+    user_list = User.objects.filter(profile__is_suspended=True)
+
+    return render(request, 'suspended_users.html', {
+        'user_list':user_list
+    })
+    
+
+@login_required
 def my_equipment(request):
     equipment = Equipment.objects.filter(current_user = request.user).prefetch_related('images')
 
@@ -742,10 +767,15 @@ def request_item_back(request, loan_id):
 
     if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can request items back.")
-
+    
+    link = reverse('core:my_equipment')
     Notification.objects.create(
         user=loan.user,
-        message=f"❗URGENT Librarian {request.user.first_name} {request.user.last_name} ({request.user.username}) has requested Equipment {loan.equipment.name} back. Return this item by going to the My Equipment page.❗" 
+        message=(
+            f"❗URGENT: Librarian {request.user.first_name} {request.user.last_name} ({request.user.username}) "
+            f"has requested Equipment <strong>{loan.equipment.name}</strong> back. "
+            f"Return it via the <a href='{link}'>My Equipment</a> page.❗"
+        )
     )
     messages.info(request, f"Requested Equipment {loan.equipment.name} from {loan.user.username} ")
 
@@ -773,5 +803,28 @@ def suspend_user(request, user_id):
     messages.info(request, f"Suspended {suspended_user.first_name} {suspended_user.last_name} ({suspended_user.username}) ")
 
     return redirect("core:librarian")
+
+@login_required
+def unsuspend_user(request, user_id):
+    user = get_object_or_404(User, id = user_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can unsuspend users.")
+    
+    #unsuspend
+    user.profile.is_suspended = False
+    user.profile.save()
+
+    Notification.objects.create(
+        user=user,
+        message=f"You have been unsuspended by Librarian {request.user.username}!✅" 
+    )
+
+    messages.info(request, f"Unsuspended {user.first_name} {user.last_name} ({user.username}) ✅")
+
+    return redirect("core:suspended_users")
+
+
+
  
     

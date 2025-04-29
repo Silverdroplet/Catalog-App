@@ -7,7 +7,8 @@ from .views import (
     my_collections, edit_collection, view_collection, approve_access, collection_catalog, delete_collection,
     equipment_details_sidebar, search_users, add_item_to_collection, return_item, deny_access_request, request_borrow_item,
     approve_borrow_request, deny_borrow_request, approve_librarian_request,deny_librarian_request, past_librarian_requests,
-    my_equipment, past_borrow_requests, about_collections, delete_item_image, request_item_back, suspend_user
+    my_equipment, past_borrow_requests, about_collections, delete_item_image, request_item_back, suspend_user, 
+    loan, suspended_users, unsuspend_user
 )
 
 
@@ -53,6 +54,9 @@ urlpatterns = [
     path('about/collections', about_collections, name='about_collecitons'),
     path("dashboard/librarian/delete-item-image/<int:image_id>/", delete_item_image, name="delete_item_image"),
     path('request-item/<int:loan_id>', request_item_back, name="request_item_back"),
-    path('suspend-user/<int:user_id>', suspend_user, name="suspend_user")
+    path('suspend-user/<int:user_id>', suspend_user, name="suspend_user"),
+    path('unsuspend-user/<int:user_id>', unsuspend_user, name="unsuspend_user"),
+    path('loans', loan, name="loan"),
+    path('suspended_users', suspended_users, name="suspended_users")
 
 ]

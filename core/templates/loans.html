@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Loans{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'core:librarian' %}" class="btn btn-primary mb-3" role="button">
+        Return to dashboard</a>
+
+  <h2 class="mb-4">Current Equipment Loans</h2>
+
+  <!-- Approved Requests Table -->
+  <div class="mb-5">
+    {% if loan_list %}
+    <div class= "scrollable-table-success" style="max-height: 440px; overflow-y: auto;">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Equipment Name</th>
+            <th>Equipment ID</th>
+            <th>Patron</th>
+            <th>Date Loaned Out</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Request Item</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loan_list %}
+            <tr>
+                <td>{{ loan.equipment.name }}</td>
+                <td>{{ loan.equipment.identifier}} </td>
+                <td>{{ loan.user.get_full_name|default:loan.user.username }} ({{loan.user.username}})</td>
+                <td>{{ loan.borrowedAt }}</td>
+                <td>{{ loan.returnDate }}</td>
+                <td>
+                    {% if loan.overdue %}
+                        Overdue ⚠️
+                    {% else %}
+                        ✅
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'core:request_item_back' loan.id %}"
+                    class="btn btn-warning btn-sm me-1"
+                    onclick="return confirm('Are you sure you want to request this item? This will send a message to the user currently loaning {{ loan.equipment.name|escapejs}} ');">
+                    Request</a>
+                </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="text-muted">Currently no equipment being loaned out.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

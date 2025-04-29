@@ -86,7 +86,7 @@
               <ul class="list-group">
                 {% for note in notifications %}
                   <li class="list-group-item">
-                    {{ note.message }}<br>
+                    {{ note.message |safe }}<br>
                     <small class="text-muted">{{ note.created_at|naturaltime }}</small>
                   </li>
                 {% endfor %}

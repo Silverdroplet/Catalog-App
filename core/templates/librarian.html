@@ -96,7 +96,7 @@
               <ul class="list-group mt-3">
                 {% for note in notifications %}
                   <li class="list-group-item">
-                    {{ note.message }}<br>
+                    {{ note.message | safe}}<br>
                     <small class="text-muted">{{ note.created_at|naturaltime }}</small>
                   </li>
                 {% endfor %}
@@ -121,7 +121,7 @@
       <div class="col-md-9 mb-4">
         <!--Current Loans-->
     <h2>Overdue Loans</h2>
-    <p>Manage all equipment currently being lended out here.</p>
+    <a href="{% url 'core:loan' %}">Manage all equipment currently being lended out here.</a>
     <table class="table table-striped mr-3">
       <thead>
         <tr>
@@ -148,13 +148,14 @@
             </td>
             <td>
               {% if loan.user.profile.is_suspended %}
-                <p>User already suspended. Unsuspend users here.</p>
+                <p>User already suspended. Unsuspend users <a href="{% url 'core:suspended_users' %}">here.</a>
+                  .</p>
               {% elif loan.user.profile.is_librarian %}
                 <p>Librarians cannot be suspended.</p>
               {% else %}
                 <a href="{% url 'core:suspend_user' loan.user.id %}"
                 class="btn btn-danger btn-sm me-1"
-                onclick="return confirm('Are you sure you want to suspend User {{ loan.user.get_full_name|escapejs}} ({{ loan.user.username|escapejs}})? This will prevent the user from borrowing any items.');">
+                onclick="return confirm('Are you sure you want to suspend User {{ loan.user.get_full_name|escapejs}} ({{ loan.user.username|escapejs}})? This will prevent the user from borrowing any items and creating collections.');">
                 Suspend</a>
               {% endif %}
             </td>
@@ -169,7 +170,7 @@
     </table>
         <!-- Pending Librarian Requests -->
         <h2>Pending Librarian Requests</h2>
-        <a href="{% url 'core:past-librarian-requests' %}">Find past librarian requests here</a>
+        <a href="{% url 'core:past-librarian-requests' %}">Find past librarian requests here.</a>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -202,7 +203,7 @@
 
         <!-- Pending Borrow Requests -->
         <h2>Pending Borrow Requests</h2>
-        <a href="{% url 'core:past_borrow_requests' %}">Find past borrow requests here</a>
+        <a href="{% url 'core:past_borrow_requests' %}">Find past borrow requests here.</a>
         
         <table class="table table-striped">
           <thead>
@@ -244,6 +245,8 @@
         <h2>Manage Collections</h2>
         <a href="{% url 'core:add_collection' %}" class="btn btn-primary mb-3">Add New Collection</a>
         <a href="{% url 'core:my_collections' %}" class="btn btn-primary mb-3">View My Collections</a>
+        <h2>Manage Users</h2>
+        <a href="{% url 'core:suspended_users' %}" class="btn btn-primary mb-3">Manage Suspended Users</a>
       </div>
 
     </div>
