@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+import random
 
 class Collection(models.Model):
     VISIBILITY_CHOICES = [
@@ -64,6 +65,17 @@ class Equipment(models.Model):
     added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='added_equipments')    
     def __str__(self):
         return self.name
+    
+    def generate_unique_identifier(self):
+        while True:
+            identifier = f"{random.randint(0, 9999):04}"  # zero-padded 4-digit string
+            if not Equipment.objects.filter(identifier=identifier).exists():
+                return identifier
+    
+    def save(self, *args, **kwargs):
+        if not self.identifier:
+            self.identifier = self.generate_unique_identifier()
+            super().save(*args, **kwargs)
 
 class Review(models.Model):
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name="reviews")
