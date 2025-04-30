@@ -51,4 +51,4 @@ Scrum Master (Mauricio) – Kept the team organized, on schedule, and served as 
 **Deployment**
 
 This app is deployed on Heroku:
-👉 https://sports-gear-lending-at-uva.herokuapp.com/
+👉 [https://sports-gear-lending-at-uva.herokuapp.com/](https://sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com/)
