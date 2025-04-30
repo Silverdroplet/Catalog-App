@@ -101,6 +101,7 @@ class PatronDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
 
 class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "librarian.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -110,6 +111,14 @@ class LibrarianDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context["username"] = user.email.split('@')[0] if user.email else user.username
         context["email"] = user.email if user.email else "No email provided"
         context["equipment_list"] = Loan.objects.filter(user=user, equipment__is_available=False)
+
+        overdue_loan_list = Loan.objects.filter(returnDate__lt=timezone.now())
+
+        for loan in overdue_loan_list:
+            loan.days_overdue = (timezone.now() - loan.returnDate).days
+
+        context["overdue_loan_list"] = overdue_loan_list
+        #context["overdue_loan_list"] = Loan.objects.all()
         context["collections"] = Collection.objects.filter(creator=user)
         context["librarian_requests"] = LibrarianRequests.objects.filter(status="pending")
         context["borrow_requests"] = BorrowRequest.objects.filter(status="pending")
@@ -475,6 +484,7 @@ def add_item_to_collection(request, item_id):
 def return_item(request, equipment_id):
     equipment = get_object_or_404(Equipment, id=equipment_id)
     loan = Loan.objects.filter(equipment=equipment, user=request.user).order_by('-borrowedAt').first()
+    user = loan.user
 
     if equipment.is_available:
         messages.error(request, "This item is still available.")
@@ -489,6 +499,24 @@ def return_item(request, equipment_id):
             loan.delete()
         else:
             messages.error(request, "No loan record found for this item.")
+        
+        overdue_loan_list = Loan.objects.filter(user=user, returnDate__lt=timezone.now())
+
+        if not overdue_loan_list:
+            if user.profile.is_suspended:
+                user.profile.is_suspended = False
+                user.profile.save()
+                
+                messages.success(request, f'You were successfully unsuspended after returning {equipment.name}.')
+
+                #notify librarians that the user was unsuspended
+                librarians = User.objects.filter(profile__is_librarian=True)
+                for librarian in librarians:
+                    Notification.objects.create(
+                        user=librarian,
+                        message=f"{loan.user.username} was unsuspended after returning '{equipment.name}'."
+                    )
+
 
     return redirect(request.META.get('HTTP_REFERER') or 'core:catalog')
 
@@ -513,10 +541,13 @@ def request_borrow_item(request, equipment_id):
 
     #Prevent multiple requests
     existing = BorrowRequest.objects.filter(item=equipment, patron=request.user, status='pending').exists()
+
     if not equipment.is_available:
         messages.error(request, "This item is not available.")
     elif existing:
         messages.warning(request, "You already have a pending request for this item.")
+    elif request.user.profile.is_suspended:
+        messages.warning(request, "You are suspended. Suspended users cannot request to borrow items.")
     else:
         BorrowRequest.objects.create(item=equipment, patron=request.user)
         #Notify all librarians
@@ -536,6 +567,18 @@ def approve_borrow_request(request, request_id):
 
     if not request.user.groups.filter(name="Librarians").exists():
         return HttpResponseForbidden("Only librarians can approve requests.")
+    
+    days = request.GET.get('days')
+    if not days:
+        #default is 7 days
+        days = 7
+
+    try:
+        days = float(days)
+    except ValueError:
+        return HttpResponse("Invalid number of days.", status=400)
+
+    returnDate = timezone.now() + timedelta(days=days)
 
     #Approve the request
     borrow_request.status = "approved"
@@ -558,7 +601,7 @@ def approve_borrow_request(request, request_id):
         user=borrow_request.patron,
         equipment=equipment,
         borrowedAt=timezone.now(),
-        returnDate=timezone.now() + timedelta(days=7)
+        returnDate=returnDate
     )
     messages.success(request, f"Approved {borrow_request.patron.username}'s request for {equipment.name}.")
     return redirect("core:librarian")
@@ -669,8 +712,38 @@ def past_librarian_requests(request):
     })
 
 @login_required
+def loan(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view past librarian requests.")
+    loan_list = Loan.objects.all()
+
+    for loan in loan_list:
+        loan.overdue = loan.returnDate < timezone.now()
+
+    return render(request, 'loans.html', {
+        'loan_list': loan_list
+    })
+
+@login_required
+def suspended_users(request):
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can view suspended users.")
+
+    user_list = User.objects.filter(profile__is_suspended=True)
+
+    return render(request, 'suspended_users.html', {
+        'user_list':user_list
+    })
+    
+
+@login_required
 def my_equipment(request):
     equipment = Equipment.objects.filter(current_user = request.user).prefetch_related('images')
+    for item in equipment:
+        loan = Loan.objects.filter(equipment=item, user=request.user).first()
+        if loan:
+            item.borrowedAt = loan.borrowedAt
+            item.returnDate = loan.returnDate
 
     return render(request, 'my_equipment.html', {
         'equipment': equipment,
@@ -698,3 +771,71 @@ def delete_item_image(request, image_id):
     equipment_id = img.equipment.id
     img.delete()
     return redirect("core:edit_equipment", equipment_id=equipment_id)
+
+@login_required
+def request_item_back(request, loan_id):
+    loan = get_object_or_404(Loan, id=loan_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can request items back.")
+    
+    link = reverse('core:my_equipment')
+    Notification.objects.create(
+        user=loan.user,
+        message=(
+            f"❗URGENT: Librarian {request.user.first_name} {request.user.last_name} ({request.user.username}) "
+            f"has requested Equipment <strong>{loan.equipment.name}</strong> back. "
+            f"Return it via the <a href='{link}'>My Equipment</a> page.❗"
+        )
+    )
+    messages.info(request, f"Requested Equipment {loan.equipment.name} from {loan.user.username} ")
+
+    return redirect("core:librarian")
+
+@login_required
+def suspend_user(request, user_id):
+    suspended_user = get_object_or_404(User, id=user_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can suspend users.")
+
+    if suspended_user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only patrons can be suspended.")
+
+    #suspend user
+    suspended_user.profile.is_suspended = True
+    suspended_user.profile.save()
+
+    Notification.objects.create(
+        user=suspended_user,
+        message=f"❗You have been suspended for overdue equipment loans. You will not be able to create/edit collections or request to borrow items. Return all overdue items to be unsuspended.❗" 
+    )
+
+    messages.info(request, f"Suspended {suspended_user.first_name} {suspended_user.last_name} ({suspended_user.username}) ")
+
+    return redirect("core:librarian")
+
+@login_required
+def unsuspend_user(request, user_id):
+    user = get_object_or_404(User, id = user_id)
+
+    if not request.user.groups.filter(name="Librarians").exists():
+        return HttpResponseForbidden("Only librarians can unsuspend users.")
+    
+    #unsuspend
+    user.profile.is_suspended = False
+    user.profile.save()
+
+    Notification.objects.create(
+        user=user,
+        message=f"You have been unsuspended by Librarian {request.user.username}!✅" 
+    )
+
+    messages.info(request, f"Unsuspended {user.first_name} {user.last_name} ({user.username}) ✅")
+
+    return redirect("core:suspended_users")
+
+
+
+ 
+    

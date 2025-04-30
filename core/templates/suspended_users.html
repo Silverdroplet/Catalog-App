@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Suspended Users{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'core:librarian' %}" class="btn btn-primary mb-3" role="button">
+        Return to dashboard</a>
+
+  <h2 class="mb-4">Current Suspended Users</h2>
+
+  <!-- Approved Requests Table -->
+  <div class="mb-5">
+    {% if user_list %}
+    <div class= "scrollable-table-success" style="max-height: 440px; overflow-y: auto;">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Username</th>
+            <th>Unsuspend?</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in user_list %}
+            <tr>
+                <td>{{ user.get_full_name }}</td>
+                <td>{{ user.username }} </td>
+                <td>
+                    <a href="{% url 'core:unsuspend_user' user.id %}"
+                    class="btn btn-warning me-1"
+                    onclick="return confirm('Are you sure you want to unsuspend {{ user.username|escapejs}} ');">
+                    Unsuspend</a>
+                </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="text-muted">Currently no suspended users.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

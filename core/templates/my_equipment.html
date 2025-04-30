@@ -19,6 +19,8 @@
             <th>Description</th>
             <th>Location</th>
             <th>Sports</th>
+            <th>Date Borrowed</th>
+            <th>Due Date</th>
             <th>Return the item?</th>
           </tr>
         </thead>
@@ -30,6 +32,8 @@
               <td>{{ item.description }}</td>
               <td>{{ item.location }}</td>
               <td>{{ item.sports_type }}</td>
+              <td>{{ item.borrowedAt }}</td>
+              <td>{{ item.returnDate }}</td>
               <td>
                 <form method="POST" action="{% url 'core:return_item' item.id %}">
                     {% csrf_token %}

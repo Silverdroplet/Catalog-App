@@ -1,6 +1,29 @@
 {% extends "base.html" %}
 {% load humanize %}
 
+{% block extra_head %}
+<!-- Loan Duration Modal -->
+<div class="modal fade" id="loanDurationModal" tabindex="-1" aria-labelledby="loanDurationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loanDurationModalLabel">Set Loan Duration</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label for="loanDaysInput" class="form-label">Enter number of days to loan:</label>
+        <input type="number" class="form-control" id="loanDaysInput" min="1">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmLoanDuration">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 {% block title %}Librarian Dashboard{% endblock %}
 
@@ -73,7 +96,7 @@
               <ul class="list-group mt-3">
                 {% for note in notifications %}
                   <li class="list-group-item">
-                    {{ note.message }}<br>
+                    {{ note.message | safe}}<br>
                     <small class="text-muted">{{ note.created_at|naturaltime }}</small>
                   </li>
                 {% endfor %}
@@ -88,14 +111,71 @@
     </div>
   </div>
 
+  <div class="container-fluid ml-3 mb-3 mr-3">
+  
+  </div>
+
   <div class="container-fluid content-wrapper ml-3 mb-3">
     <div class="row">
 
-      <div class="col-md-8 mb-4">
+      <div class="col-md-9 mb-4">
+        <!--Current Loans-->
+    <h2>Overdue Loans</h2>
+    <a href="{% url 'core:loan' %}">Manage all equipment currently being lended out here.</a>
+    <table class="table table-striped mr-3">
+      <thead>
+        <tr>
+          <th>Equipment</th>
+          <th>Patron</th>
+          <th>Date Loaned Out</th>
+          <th>Time Overdue</th>
+          <th>Request Item Back</th>
+          <th>Suspend User</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loan in overdue_loan_list %}
+          <tr>
+            <td>{{ loan.equipment.name }}</td>
+            <td>{{ loan.user.get_full_name }} ({{loan.user.username}})</td>
+            <td>{{ loan.borrowedAt }}</td>
+            <td>{{ loan.returnDate|timesince }}</td>
+            <td>
+              <a href="{% url 'core:request_item_back' loan.id %}"
+              class="btn btn-warning btn-sm me-1"
+              onclick="return confirm('Are you sure you want to request this equipment? This will send a message to the user currently loaning {{ loan.equipment.name|escapejs}} that you would like the equipment returned. ');">
+              Request</a>
+            </td>
+            <td>
+              {% if loan.user.profile.is_suspended %}
+                <p>User already suspended. Unsuspend users <a href="{% url 'core:suspended_users' %}">here</a>.</p>
+              {% elif loan.user.profile.is_librarian %}
+                <p>Librarians cannot be suspended.</p>
+              {% else %}
+                <a href="{% url 'core:suspend_user' loan.user.id %}"
+                class="btn btn-danger btn-sm me-1"
+                onclick="return confirm('Are you sure you want to suspend User {{ loan.user.get_full_name|escapejs}} ({{ loan.user.username|escapejs}})? This will prevent the user from requesting to borrow any items.');">
+                Suspend</a>
+              {% endif %}
+            </td>
+
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6">No overdue loans.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
         <!-- Pending Librarian Requests -->
         <h2>Pending Librarian Requests</h2>
-        <a href="{% url 'core:past-librarian-requests' %}">Find past librarian requests here</a>
+        <a href="{% url 'core:past-librarian-requests' %}">Find past librarian requests here.</a>
         <table class="table table-striped">
+          <colgroup>
+            <col style="width: 35%;">
+            <col style="width: 35%;">
+            <col style="width: 30%;">
+          </colgroup>
           <thead>
             <tr>
               <th>Patron Username</th>
@@ -109,8 +189,10 @@
                 <td>{{ request.patron.username }}</td>
                 <td>{{ request.patron.email }}</td>
                 <td>
-                  <a href="{% url 'core:approve_librarian_request' request.id %}"
-                     class="btn btn-success btn-sm me-1">Approve</a>
+                     <a href="{% url 'core:approve_librarian_request' request.id %}"
+                        class="btn btn-success btn-sm me-1"
+                        onclick="return confirm('Are you sure you want to approve {{ request.patron.get_full_name|escapejs}} ({{ request.patron.username|escapejs}}) as a Librarian? This action can not be reversed.');">
+                        Approve</a>
                   <a href="{% url 'core:deny_librarian_request' request.id %}"
                      class="btn btn-danger btn-sm">Deny</a>
                 </td>
@@ -125,8 +207,14 @@
 
         <!-- Pending Borrow Requests -->
         <h2>Pending Borrow Requests</h2>
-        <a href="{% url 'core:past_borrow_requests' %}">Find past borrow requests here</a>
+        <a href="{% url 'core:past_borrow_requests' %}">Find past borrow requests here.</a>
+        
         <table class="table table-striped">
+          <colgroup>
+            <col style="width: 35%;">
+            <col style="width: 35%;">
+            <col style="width: 30%;">
+          </colgroup>
           <thead>
             <tr>
               <th>Item Name</th>
@@ -140,15 +228,17 @@
                 <td>{{ request.item.name }}</td>
                 <td>{{ request.patron.username }}</td>
                 <td>
-                  <a href="{% url 'core:approve_borrow_request' request.id %}"
-                     class="btn btn-success btn-sm me-1">Approve</a>
+                  <!-- Approve Button -->
+                  <button type="button" class="btn btn-success btn-sm me-1" data-bs-toggle="modal" data-bs-target="#loanDurationModal" data-request-id="{{ request.id }}">
+                    Approve
+                  </button>
                   <a href="{% url 'core:deny_borrow_request' request.id %}"
                      class="btn btn-danger btn-sm">Deny</a>
                 </td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="3">No pending borrow requests.</td>
+                <td colspan="4">No pending borrow requests.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -156,16 +246,44 @@
       </div>
 
       <!-- Equipment & Collections Management -->
-      <div class="col-md-4">
+      <div class="col-md-3">
         <h2>Manage Equipment</h2>
         <a href="{% url 'core:add_equipment' %}" class="btn btn-primary mb-3">Add New Equipment</a>
         <a href="{% url 'core:my_equipment' %}" class="btn btn-primary mb-3">View My Equipment</a>
 
-        <h2>Collections</h2>
-        <a href="{% url 'core:add_collection' %}" class="btn btn-primary">Add New Collection</a>
-        <a href="{% url 'core:my_collections' %}" class="btn btn-primary">View My Collections</a>
+        <h2>Manage Collections</h2>
+        <a href="{% url 'core:add_collection' %}" class="btn btn-primary mb-3">Add New Collection</a>
+        <a href="{% url 'core:my_collections' %}" class="btn btn-primary mb-3">View My Collections</a>
+        <h2>Manage Users</h2>
+        <a href="{% url 'core:suspended_users' %}" class="btn btn-primary mb-3">Manage Suspended Users</a>
       </div>
 
     </div>
   </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let currentRequestId = null;
+
+  // Store the request ID when the modal is triggered
+  const loanModal = document.getElementById('loanDurationModal');
+  loanModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    currentRequestId = button.getAttribute('data-request-id');
+  });
+
+  // Handle confirm button click
+  document.getElementById('confirmLoanDuration').addEventListener('click', function () {
+    const days = document.getElementById('loanDaysInput').value;
+    if (days && days > 0) {
+      const url = `/borrow-request/${currentRequestId}/approve/?days=${days}`;
+      window.location.href = url;
+    } else {
+      alert("Please enter a valid number of days.");
+    }
+  });
+</script>
+
+{% endblock %}
+
