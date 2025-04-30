@@ -664,7 +664,7 @@ def approve_librarian_request(request, request_id):
     patron_group, created = Group.objects.get_or_create(name="Patrons")
     librarian_request.patron.groups.add(librarian_group)
     librarian_request.patron.groups.remove(patron_group)
-    librarian_request.patron.profile__is_librarian = True
+    librarian_request.patron.profile.is_librarian = True
     librarian_request.patron.save()
     librarian_request.patron.profile.save()
 
