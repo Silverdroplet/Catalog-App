@@ -5,9 +5,11 @@
 This is a Django-based web application designed to support a sports equipment lending system for the University of Virginia. Users can browse an equipment catalog, request items to borrow, return items, submit reviews, and manage collections. The system supports role-based functionality for patrons and librarians, with oversight from Django superusers.
 
 **Overview**
+
 This application facilitates equipment lending among students and staff, where patrons can browse and borrow equipment, librarians can approve or deny requests and monitor overdue items, and anonymous users can view the catalog before logging in. Key interactions such as loan management, librarian approval, item reviews, and item collections are supported with a clean and responsive user interface.
 
 **Features**
+
 📦 Catalog: View, search, and filter available sports equipment.
 
 🔐 Authentication: Google login via Django AllAuth.
@@ -25,6 +27,7 @@ This application facilitates equipment lending among students and staff, where p
 🧑‍💼 Librarian Management: Role requests, access approval, and borrower oversight.
 
 **User Roles**
+
 - Anonymous Users: Can access the application but must log in to interact with the actalog among other functionalities.
 
 - Patrons: Can request to borrow, return, and review equipment.
