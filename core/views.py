@@ -514,7 +514,7 @@ def return_item(request, equipment_id):
                 for librarian in librarians:
                     Notification.objects.create(
                         user=librarian,
-                        message=f"{loan.user.username} was unsuspended after returning '{equipment.name}'."
+                        message=f"📥{loan.user.username} was unsuspended after returning '{equipment.name}'."
                     )
 
 
@@ -594,7 +594,7 @@ def approve_borrow_request(request, request_id):
 
     Notification.objects.create(
         user=borrow_request.patron,
-        message=f"Your request to borrow '{borrow_request.item.name}' was approved!"
+        message=f"📥Your request to borrow '{borrow_request.item.name}' was approved!"
     )
     #Create the loan
     Loan.objects.create(
@@ -620,7 +620,7 @@ def deny_borrow_request(request, request_id):
 
     Notification.objects.create(
         user=borrow_request.patron,
-        message=f"Your request to borrow '{borrow_request.item.name}' was denied."
+        message=f"📥Your request to borrow '{borrow_request.item.name}' was denied."
     )
     messages.info(request, f"Denied {borrow_request.patron.username}'s request for {borrow_request.item.name}.")
     return redirect("core:librarian")
@@ -672,7 +672,7 @@ def approve_librarian_request(request, request_id):
     #notify patron
     Notification.objects.create(
         user = librarian_request.patron,
-        message=f"Your request to be a librarian was approved!"
+        message=f"📥Your request to be a librarian was approved!"
     )
 
     messages.success(request, f"Approved {librarian_request.patron.username}'s request to be a librarian.")
@@ -692,7 +692,7 @@ def deny_librarian_request(request, request_id):
 
     Notification.objects.create(
         user=librarian_request.patron,
-        message=f"Your request to be a librarian was denied."
+        message=f"📥Your request to be a librarian was denied."
     )
     
     messages.info(request, f"Denied {librarian_request.patron.username}'s request to be a librarian.")
@@ -828,7 +828,7 @@ def unsuspend_user(request, user_id):
 
     Notification.objects.create(
         user=user,
-        message=f"You have been unsuspended by Librarian {request.user.username}!✅" 
+        message=f"📥You have been unsuspended by Librarian {request.user.username}!✅" 
     )
 
     messages.info(request, f"Unsuspended {user.first_name} {user.last_name} ({user.username}) ✅")
