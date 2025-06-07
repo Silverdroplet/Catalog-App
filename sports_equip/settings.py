@@ -10,38 +10,37 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import sys
 from pathlib import Path
-import dj_database_url
 import os
+import dj_database_url
 from dotenv import load_dotenv
+
+# Load environment variables from .env
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-uxwk@p825#_ad-wayfo=@#g3roef^uo80z+2ce6c7h0$_m*vh&'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-uxwk@p825#_ad-wayfo=@#g3roef^uo80z+2ce6c7h0$_m*vh&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'sports-equipment-app.herokuapp.com/',
-    'sports-equipment-app-c7caa8020653.herokuapp.com/',
+    'sports-equipment-app.herokuapp.com',
+    'sports-equipment-app-c7caa8020653.herokuapp.com',
     'sports-gear-lending-at-uva.herokuapp.com',
-    'sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com', 
+    'sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com',
     'localhost',
     '127.0.0.1'
 ]
 
-
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,72 +55,57 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'storages',
-    "core",
+    'core',
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',  # Default Django authentication
-    'allauth.account.auth_backends.AuthenticationBackend',  # Enables social authentication
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-# Required settings for Django Allauth
-LOGIN_REDIRECT_URL = "/dashboard/"  # Redirect users to dashboard after login
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-ACCOUNT_LOGIN_METHOD = 'email'
+SITE_ID = 1
+
+# Allauth configuration
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_UNIQUE_EMAIL = True
+LOGIN_REDIRECT_URL = '/dashboard/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")  # Change if using another provider
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # Your email address
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Your app password
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Google OAuth Configuration
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
+        'SCOPE': ['profile', 'email'],
         'FIELDS': ['email', 'given_name', 'family_name'],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-       # 'REDIRECT_URI': 'https://sports-gear-lending-at-uva-cab93fa3d7df.herokuapp.com/accounts/google/login/callback/'
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
+            'key': ''
+        }
     }
 }
 
-SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
-    'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
-    'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
-    'key': ''
-}
-
-ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_USERNAME_REQUIRED = False
-
-LOGIN_REDIRECT_URL = "/dashboard/"
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'allauth.account.middleware.AccountMiddleware',
 ]
-
 
 ROOT_URLCONF = 'sports_equip.urls'
 
@@ -143,92 +127,51 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sports_equip.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': dj_database_url.config(
-        default="sqlite:///db.sqlite3",  # Fallback if PostgreSQL isn't set
+        default='sqlite:///db.sqlite3',
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=False
     )
 }
 
-
-
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE='America/New_York'
-
+TIME_ZONE = 'America/New_York'
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+# Static files
 STATIC_URL = '/static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///db.sqlite3", conn_max_age=600, ssl_require=False
-    )
-}
-
-#DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
-
-#Tells django where to look for the static files for deployment
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Static files settings for WhiteNoise
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+# Custom adapter
 SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
-#ACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
+# AWS S3 settings for production
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-2')
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
 
-SITE_ID = 1
-SOCIALACCOUNT_LOGIN_ON_GET = True
-#adding AWS credentials
-
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "us-east-2")
-AWS_S3_SIGNATURE_VERSION = "s3v4"
-
-# Tells Django to use S3 for file uploads
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
-# Optional settings
-AWS_S3_FILE_OVERWRITE = False  # So files with same name won’t overwrite each other
-AWS_DEFAULT_ACL = None         # Often recommended to let your bucket policy handle ACL
+# Storage backend: S3 in normal runs, local filesystem during tests
+if 'test' in sys.argv:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_ROOT = BASE_DIR / 'test_media'
+else:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
